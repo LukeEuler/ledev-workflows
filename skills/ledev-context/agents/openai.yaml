@@ -1,0 +1,7 @@
+interface:
+  display_name: "ledev-context"
+  short_description: "Build and maintain verified project context."
+  default_prompt: "Use $ledev-context to choose and run the appropriate project context mode."
+
+policy:
+  allow_implicit_invocation: false

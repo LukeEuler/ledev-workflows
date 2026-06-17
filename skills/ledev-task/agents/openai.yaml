@@ -1,0 +1,4 @@
+interface:
+  display_name: "ledev-task"
+  short_description: "Track code changes and bug fixes in typed tasks."
+  default_prompt: "Use $ledev-task to manage a typed development task and follow its confirmation workflow."

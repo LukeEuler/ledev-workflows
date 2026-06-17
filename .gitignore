@@ -1,0 +1,10 @@
+# Python helper script cache
+__pycache__/
+*.py[cod]
+
+# Local temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo

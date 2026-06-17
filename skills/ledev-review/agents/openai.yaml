@@ -1,0 +1,4 @@
+interface:
+  display_name: "ledev-review"
+  short_description: "Review committed linear Git changes with findings first."
+  default_prompt: "Use $ledev-review to review a committed linear Git range and report findings first."

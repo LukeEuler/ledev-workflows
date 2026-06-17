@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-DEST="${CODEX_HOME:-$HOME/.codex}/skills"
+DEST="${LEDEV_CODEX_SKILLS_DEST:-${CODEX_HOME:-$HOME/.codex}/skills}"
 
 mkdir -p "$DEST"
 
@@ -12,6 +12,8 @@ legacy_names=(
   dev-context
   dev-fix
   dev-impl
+  ledev-fix
+  ledev-impl
   dev-review
   dev-test
   dev-tool
@@ -31,8 +33,23 @@ done
 
 for skill in "$ROOT"/skills/*; do
   [ -d "$skill" ] || continue
+  [ -f "$skill/SKILL.md" ] || continue
+
   name="$(basename "$skill")"
   target="$DEST/$name"
+
+  if grep -Eq '^> Status: unavailable[[:space:]]*$' "$skill/SKILL.md"; then
+    if [ -L "$target" ]; then
+      rm "$target"
+      echo "removed unavailable skill symlink $target"
+    elif [ -e "$target" ]; then
+      echo "Skipping unavailable skill with existing non-symlink: $target" >&2
+    else
+      echo "skipped unavailable skill $name"
+    fi
+    continue
+  fi
+
   if [ -L "$target" ]; then
     rm "$target"
   elif [ -e "$target" ]; then

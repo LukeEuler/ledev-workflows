@@ -1,22 +1,26 @@
 ---
 name: ledev-test
-description: 不可用：该 skill 尚未完成开发和验证，不应被用于测试、验证或构建检查任务。请先使用 ledev-context 建立项目上下文，等待该 skill 正式开发后再启用。
+description: 不可用：该 skill 尚未完成开发和验证，不应被用于测试、验证或构建检查任务。等待该 skill 正式开发并启用。
 ---
 
 # Test Validation
 
 > Status: unavailable
 >
-> 该 skill 尚未完成开发和验证。不要按本文档执行测试工作流；需要测试或验证时，先使用 `ledev-context` 建立项目上下文，并按用户明确指令手动处理。
+> 该 skill 尚未完成开发和验证。不要按本文档执行测试工作流；需要测试或验证时，按用户明确指令使用当前可用的项目工具处理。
 
 ## Inputs
 
 Read, when present:
 
-- `.ai/project-context.md`
-- `.ai/state/ledev-test.md`
-- relevant `.ai/state/ledev-*.md` files when validating prior implementation or bugfix work
-- language rules identified by `ledev-context`
+- `.ai/ledev/project-context.md`
+- `.ai/ledev/scope/scan-scope.md`
+- `.ai/ledev/facts/related-repos.md`
+- `.ai/ledev/state/ledev-test.md`
+- relevant `.ai/ledev/state/ledev-*.md` files when validating prior implementation or bugfix work
+- relevant language rules when available
+
+If existing project artifacts declare `Primary repo` and `Related repos`, they can be used as optional evidence. Their absence must not trigger another skill or block validation. Validation selection must use the primary repo's actual resolved dependency versions; related repos are read-only references unless the user explicitly asks for cross-repo validation or modification.
 
 ## 文件布局约定
 
@@ -43,7 +47,7 @@ Read, when present:
    - Prefer deterministic regression coverage for bug fixes.
 
 4. Coordinate state.
-   - Record commands, pass/fail status, blockers, and residual risk in `.ai/state/ledev-test.md` when present or useful.
+   - Record commands, pass/fail status, blockers, and residual risk in `.ai/ledev/state/ledev-test.md` when present or useful.
    - Do not mark full validation complete if only focused validation ran.
 
 5. Diagnose failures.

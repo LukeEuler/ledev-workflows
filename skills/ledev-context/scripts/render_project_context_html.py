@@ -27,6 +27,7 @@ TRUSTED_HTML_PLACEHOLDERS = {
     "PROJECT_SPECIFICS_HTML",
     "RECOVERY_HTML",
     "SECURITY_HTML",
+    "SCOPE_BOUNDARY_HTML",
 }
 
 REQUIRED_SECTIONS = [
@@ -52,6 +53,8 @@ REQUIRED_DESIGN_MARKERS = [
     ("数据模型块", 'class="model-blocks"'),
     ("数据模型图", 'class="diagram model-er-diagram"'),
     ("状态机图", 'class="diagram state-machine-diagram"'),
+    ("图表无障碍摘要", 'class="sr-only diagram-summary"'),
+    ("Mermaid 失败提示", 'class="mermaid-fallback"'),
     ("安全结构块", 'class="security-blocks"'),
     ("业务安全表", "security-controls"),
     ("加密场景表", "crypto-scenarios"),
@@ -127,8 +130,10 @@ ARCHITECTURE_TEXT_LIMITS = {
     "BOTTOM_TIER_ITEM_4_NOTE": 16,
 }
 
+INTERNAL_AI_PATH_RE = r"\.ai(?:/ledev)?/"
+
 ARCHITECTURE_FORBIDDEN_PATTERNS = [
-    re.compile(r"\.ai/|\.md\b|:[0-9]+|QA-[0-9]+", re.IGNORECASE),
+    re.compile(INTERNAL_AI_PATH_RE + r"|\.md\b|:[0-9]+|QA-[0-9]+", re.IGNORECASE),
     re.compile(r"go\.mod|Makefile|\.gitlab-ci|CI\b|lint|test|测试|dev/example|dev scripts", re.IGNORECASE),
     re.compile(r"generated|third[-_ ]party|vendor", re.IGNORECASE),
 ]
@@ -186,12 +191,12 @@ MERMAID_KEYWORDS = {
 }
 
 MODEL_FORBIDDEN_PATTERNS = [
-    re.compile(r"\.ai/|\.md\b|:[0-9]+|QA-[0-9]+", re.IGNORECASE),
+    re.compile(INTERNAL_AI_PATH_RE + r"|\.md\b|:[0-9]+|QA-[0-9]+", re.IGNORECASE),
     re.compile(r"证据|evidence|file:|line:", re.IGNORECASE),
 ]
 
 SECURITY_FORBIDDEN_PATTERNS = [
-    re.compile(r"\.ai/|\.md\b|:[0-9]+|QA-[0-9]+", re.IGNORECASE),
+    re.compile(INTERNAL_AI_PATH_RE + r"|\.md\b|:[0-9]+|QA-[0-9]+", re.IGNORECASE),
     re.compile(r"证据|evidence|file:|line:", re.IGNORECASE),
     re.compile(r"(APP|API|ACCESS|SECRET|TOKEN|KEY|PWD|PASSWORD|AK|SK)[A-Z0-9_]{2,}", re.IGNORECASE),
     re.compile(r"\b(AES|RSA|ECDSA|Ed25519|SHA-?256|SHA-?512|HMAC|CBC|GCM|PKCS|padding|IV|密钥长度|迭代次数)\b", re.IGNORECASE),
@@ -224,10 +229,16 @@ DEPENDENCY_FORBIDDEN_PATTERNS = [
     re.compile(r"generated|third[-_ ]party\s*目录|vendor\s*目录", re.IGNORECASE),
 ]
 
+HTML_TAG_RE = re.compile(r"</?[A-Za-z][^>]*>")
+LEGACY_SCOPE_PLACEHOLDERS = {
+    "PROJECT_OWNED_SCOPE": "project_owned_scope_items",
+    "PROJECT_OUT_OF_SCOPE": "project_out_of_scope_items",
+}
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Render .ai/project-context.html from project-context-html-template.html and JSON placeholders.",
+        description="Render .ai/ledev/project-context.html from project-context-html-template.html and JSON placeholders.",
     )
     parser.add_argument("--template", required=True, type=Path, help="HTML template path.")
     parser.add_argument("--data", type=Path, help="JSON data path.")
@@ -315,6 +326,19 @@ def as_text(value: Any, fallback: str = "未确认") -> str:
 
 def escape_text(value: Any, fallback: str = "未确认") -> str:
     return html.escape(as_text(value, fallback), quote=True)
+
+
+def status_badge_class(value: Any, fallback: str = "open") -> str:
+    text = as_text(value, fallback).lower()
+    if any(token in text for token in ("confirmed", "已确认", "事实", "明确")):
+        return "confirmed"
+    if any(token in text for token in ("risk", "风险", "warning", "warn")):
+        return "risk"
+    if any(token in text for token in ("inferred", "推断", "assumption", "假设")):
+        return "inferred"
+    if any(token in text for token in ("open", "question", "未确认", "待确认", "未发现")):
+        return "open"
+    return fallback
 
 
 def as_text_list(value: Any) -> list[str]:
@@ -406,6 +430,118 @@ def validate_recovery_text(label: str, value: Any, problems: list[str]) -> None:
         if pattern.search(text):
             problems.append(f"{label} 不应把实现缺陷或 Bug 写入 HTML 故障恢复：{text[:50]}")
             break
+
+
+def validate_plain_placeholder_html(placeholders: dict[str, str], *, skip: bool = False) -> None:
+    if skip:
+        return
+    problems: list[str] = []
+    for key, replacement in LEGACY_SCOPE_PLACEHOLDERS.items():
+        value = placeholders.get(key, "")
+        if HTML_TAG_RE.search(value):
+            problems.append(
+                f"{key} 只能是纯文本；请改用结构化字段 {replacement}，由脚本生成 HTML 表格。"
+            )
+    if problems:
+        preview = "\n".join(f"- {item}" for item in problems)
+        raise SystemExit(f"HTML 架构范围字段自检失败：\n{preview}")
+
+
+def normalize_scope_items(raw_items: Any, *, label: str, fallback_text: str, problems: list[str]) -> list[dict[str, str]]:
+    if raw_items is None:
+        return []
+    if not isinstance(raw_items, list):
+        problems.append(f"{label} 必须是数组。")
+        return []
+
+    items: list[dict[str, str]] = []
+    for index, raw_item in enumerate(raw_items, start=1):
+        if isinstance(raw_item, str):
+            scope = as_text(raw_item, fallback_text)
+            description = "未确认：说明"
+        elif isinstance(raw_item, dict):
+            scope = as_text(
+                raw_item.get("scope")
+                or raw_item.get("name")
+                or raw_item.get("range")
+                or raw_item.get("item"),
+                fallback_text,
+            )
+            description = as_text(
+                raw_item.get("description")
+                or raw_item.get("summary")
+                or raw_item.get("note")
+                or raw_item.get("reason"),
+                "未确认：说明",
+            )
+        else:
+            problems.append(f"{label}[{index}] 必须是对象或字符串。")
+            continue
+
+        if HTML_TAG_RE.search(scope) or HTML_TAG_RE.search(description):
+            problems.append(f"{label}[{index}] 只能包含纯文本，不能包含 HTML 标签。")
+            continue
+        items.append({"scope": scope, "description": description})
+    return items
+
+
+def build_scope_boundary_html(data: dict[str, Any], placeholders: dict[str, str], *, skip_validation: bool = False) -> str:
+    problems: list[str] = []
+    owned_items = normalize_scope_items(
+        data.get("project_owned_scope_items"),
+        label="project_owned_scope_items",
+        fallback_text="未确认：负责范围",
+        problems=problems,
+    )
+    out_items = normalize_scope_items(
+        data.get("project_out_of_scope_items"),
+        label="project_out_of_scope_items",
+        fallback_text="未确认：不负责范围",
+        problems=problems,
+    )
+
+    if not owned_items:
+        legacy_owned = as_text(placeholders.get("PROJECT_OWNED_SCOPE"), "")
+        if legacy_owned:
+            owned_items = [{"scope": "项目负责范围", "description": legacy_owned}]
+    if not out_items:
+        legacy_out = as_text(placeholders.get("PROJECT_OUT_OF_SCOPE"), "")
+        if legacy_out:
+            out_items = [{"scope": "不负责的范围", "description": legacy_out}]
+
+    if skip_validation and not owned_items:
+        owned_items = [{"scope": "项目负责范围", "description": "说明本项目实际负责的边界。"}]
+    if skip_validation and not out_items:
+        out_items = [{"scope": "不负责的范围", "description": "说明本项目不覆盖或交由其他系统处理的边界。"}]
+
+    if not skip_validation and not owned_items:
+        problems.append("缺少 project_owned_scope_items，无法渲染项目负责范围。")
+    if not skip_validation and not out_items:
+        problems.append("缺少 project_out_of_scope_items，无法渲染不负责范围。")
+
+    if problems:
+        preview = "\n".join(f"- {item}" for item in problems[:12])
+        suffix = "" if len(problems) <= 12 else f"\n... 共 {len(problems)} 个问题"
+        raise SystemExit(f"HTML 架构范围自检失败：\n{preview}{suffix}")
+
+    def rows(kind: str, items: list[dict[str, str]]) -> str:
+        return "".join(
+            "<tr>"
+            f"<td>{escape_text(kind)}</td>"
+            f"<td>{escape_text(item.get('scope'), '未确认：范围')}</td>"
+            f"<td>{escape_text(item.get('description'), '未确认：说明')}</td>"
+            "</tr>"
+            for item in items
+        )
+
+    return (
+        '<div class="table-wrap scope-table">'
+        "<table><thead><tr>"
+        "<th>边界</th><th>范围</th><th>说明</th>"
+        "</tr></thead><tbody>"
+        f'{rows("项目负责范围", owned_items)}{rows("不负责的范围", out_items)}'
+        "</tbody></table></div>"
+    )
 
 
 def build_configuration_html(data: dict[str, Any], *, skip_validation: bool = False) -> str:
@@ -882,14 +1018,11 @@ def build_dependencies_html(data: dict[str, Any], *, skip_validation: bool = Fal
         suffix = "" if len(problems) <= 12 else f"\n... 共 {len(problems)} 个问题"
         raise SystemExit(f"HTML 上下游和服务依赖自检失败：\n{preview}{suffix}")
 
-    mermaid = html.escape("\n".join(edges), quote=False)
-    return (
-        '<div class="diagram dependency-diagram">'
-        '<div class="diagram-label">上下游链路图</div>'
-        '<div class="diagram-body">'
-        f'<pre class="mermaid">{mermaid}</pre>'
-        "</div>"
-        "</div>"
+    return mermaid_diagram_html(
+        "上下游链路图",
+        "dependency-diagram",
+        "\n".join(edges),
+        summary=f"上下游链路图包含 {len(node_ids)} 个节点和 {max(len(edges) - 1, 0)} 条链路",
     )
 
 
@@ -1038,12 +1171,16 @@ def format_state_name(state: dict[str, Any]) -> str:
     return label
 
 
-def mermaid_diagram_html(label: str, diagram_class: str, source: str) -> str:
+def mermaid_diagram_html(label: str, diagram_class: str, source: str, *, summary: str | None = None) -> str:
+    summary_text = as_text(summary, label)
+    summary = f"{summary_text}。如果图表未渲染，请查看下方 Mermaid 源文本。"
     return (
-        f'<div class="diagram {diagram_class}">'
+        f'<div class="diagram {diagram_class}" role="img" aria-label="{html.escape(summary, quote=True)}">'
         f'<div class="diagram-label">{html.escape(label, quote=True)}</div>'
+        f'<p class="sr-only diagram-summary">{html.escape(summary)}</p>'
         '<div class="diagram-body">'
         f'<pre class="mermaid">{html.escape(source, quote=False)}</pre>'
+        '<p class="mermaid-fallback">图表依赖 Mermaid 渲染；如果当前环境无法加载脚本，上方会保留 Mermaid 源文本。</p>'
         "</div>"
         "</div>"
     )
@@ -1275,59 +1412,29 @@ def build_model_html(data: dict[str, Any], *, skip_validation: bool = False) -> 
     if not skip_validation and not entities:
         problems.append("缺少 data_entities，无法渲染核心数据对象。")
 
-    domain_cards: list[str] = []
     for index, raw_domain in enumerate(domains, start=1):
         if not isinstance(raw_domain, dict):
             problems.append(f"data_domains[{index}] 必须是对象。")
-            continue
-        objects = as_text_list(raw_domain.get("objects"))
-        object_items = "".join(f"<li>{escape_text(item)}</li>" for item in objects) or "<li>未确认：包含对象</li>"
-        domain_cards.append(
-            '<article class="model-domain">'
-            f"<h3>{escape_text(raw_domain.get('name'), '未确认：数据域')}</h3>"
-            f"<p>{escape_text(raw_domain.get('summary'), '未确认：业务含义')}</p>"
-            f"<ul>{object_items}</ul>"
-            '<dl class="model-meta">'
-            f"<div><dt>创建/更新</dt><dd>{escape_text(raw_domain.get('producer'), '未确认')}</dd></div>"
-            f"<div><dt>消费方</dt><dd>{escape_text(raw_domain.get('consumer'), '未确认')}</dd></div>"
-            "</dl>"
-            "</article>"
-        )
-
-    entity_rows: list[str] = []
+    entity_names: set[str] = set()
     for index, raw_entity in enumerate(entities, start=1):
         if not isinstance(raw_entity, dict):
             problems.append(f"data_entities[{index}] 必须是对象。")
             continue
-        fields = "、".join(as_text_list(raw_entity.get("key_fields"))) or "未确认"
-        entity_rows.append(
-            "<tr>"
-            f"<td>{escape_text(raw_entity.get('name'), '未确认：对象')}</td>"
-            f"<td>{escape_text(raw_entity.get('domain'), '未确认：数据域')}</td>"
-            f"<td>{escape_text(raw_entity.get('meaning'), '未确认：业务含义')}</td>"
-            f"<td>{escape_text(fields)}</td>"
-            f"<td>{escape_text(raw_entity.get('created_by'), '未确认')}</td>"
-            f"<td>{escape_text(raw_entity.get('consumed_by'), '未确认')}</td>"
-            "</tr>"
-        )
-    if not entity_rows:
-        entity_rows.append("<tr><td>未确认</td><td>未确认</td><td>未确认</td><td>未确认</td><td>未确认</td><td>未确认</td></tr>")
+        name = as_text(raw_entity.get("name"), "")
+        if name:
+            entity_names.add(name)
 
-    relation_rows: list[str] = []
     for index, raw_relation in enumerate(relations, start=1):
         if not isinstance(raw_relation, dict):
             problems.append(f"data_relations[{index}] 必须是对象。")
             continue
-        relation_rows.append(
-            "<tr>"
-            f"<td>{escape_text(raw_relation.get('from'), '未确认：源对象')}</td>"
-            f"<td>{escape_text(raw_relation.get('relation'), '未确认：关系')}</td>"
-            f"<td>{escape_text(raw_relation.get('to'), '未确认：目标对象')}</td>"
-            f"<td>{escape_text(raw_relation.get('meaning'), '未确认：关系含义')}</td>"
-            "</tr>"
-        )
-    if not relation_rows:
-        relation_rows.append("<tr><td>未确认</td><td>未确认</td><td>未确认</td><td>未确认</td></tr>")
+        source = as_text(raw_relation.get("from"), "")
+        target = as_text(raw_relation.get("to"), "")
+        if not skip_validation and entity_names:
+            if source and source not in entity_names:
+                problems.append(f"数据关系源对象未在 data_entities 中定义：{source}")
+            if target and target not in entity_names:
+                problems.append(f"数据关系目标对象未在 data_entities 中定义：{target}")
 
     state_status = as_text(state_machine.get("status"), "未确认：状态机")
     state_name = as_text(state_machine.get("name"), "状态机")
@@ -1342,9 +1449,7 @@ def build_model_html(data: dict[str, Any], *, skip_validation: bool = False) -> 
     if not skip_validation and state_status == "confirmed" and not states:
         problems.append("state_machine.status 为 confirmed 时必须提供 states。")
 
-    state_rows: list[str] = []
     state_aliases: set[str] = set()
-    state_lookup: dict[str, str] = {}
     for index, raw_state in enumerate(states, start=1):
         if not isinstance(raw_state, dict):
             problems.append(f"state_machine.states[{index}] 必须是对象。")
@@ -1354,20 +1459,9 @@ def build_model_html(data: dict[str, Any], *, skip_validation: bool = False) -> 
             candidate_text = as_text(candidate, "")
             if candidate_text:
                 state_aliases.add(candidate_text)
-                state_lookup[candidate_text] = display
         if not skip_validation and state_status == "confirmed" and not as_text(raw_state.get("enum"), "") and not as_text(raw_state.get("value"), ""):
             problems.append(f"{display} 缺少枚举名或数值，无法保留状态代码语义。")
-        state_rows.append(
-            "<tr>"
-            f"<td>{escape_text(display)}</td>"
-            f"<td>{escape_text(raw_state.get('meaning'), '未确认：业务含义')}</td>"
-            f"<td>{escape_text(raw_state.get('entry'), '未确认：进入条件')}</td>"
-            f"<td>{escape_text(raw_state.get('exit'), '未确认：退出条件')}</td>"
-            f"<td>{escape_text(raw_state.get('failure'), '未确认：异常去向')}</td>"
-            "</tr>"
-        )
 
-    transition_items: list[str] = []
     for index, raw_transition in enumerate(transitions, start=1):
         if not isinstance(raw_transition, dict):
             problems.append(f"state_machine.transitions[{index}] 必须是对象。")
@@ -1379,14 +1473,6 @@ def build_model_html(data: dict[str, Any], *, skip_validation: bool = False) -> 
                 problems.append(f"状态流转起点未在 states 中定义：{start}")
             if target not in state_aliases:
                 problems.append(f"状态流转终点未在 states 中定义：{target}")
-        transition_items.append(
-            "<li>"
-            f"<strong>{escape_text(state_lookup.get(start, start))}</strong>"
-            f"<span>{escape_text(raw_transition.get('event'), '未确认：触发动作')}</span>"
-            f"<strong>{escape_text(state_lookup.get(target, target))}</strong>"
-            f"<em>{escape_text(raw_transition.get('actor'), '未确认：触发方')} / {escape_text(raw_transition.get('failure'), '未确认：失败处理')}</em>"
-            "</li>"
-        )
 
     if problems:
         preview = "\n".join(f"- {item}" for item in problems[:12])
@@ -1397,6 +1483,7 @@ def build_model_html(data: dict[str, Any], *, skip_validation: bool = False) -> 
         "核心数据 ER 图",
         "model-er-diagram",
         build_model_er_mermaid(domains, entities, relations),
+        summary=f"核心数据 ER 图包含 {len(entities)} 个核心对象和 {len(relations)} 条对象关系",
     )
     if state_status.startswith("未发现") or (not states and not transitions):
         state_html = (
@@ -1410,6 +1497,7 @@ def build_model_html(data: dict[str, Any], *, skip_validation: bool = False) -> 
             f"{state_name}",
             "state-machine-diagram",
             build_state_machine_mermaid(states, transitions),
+            summary=f"{state_name}包含 {len(states)} 个状态和 {len(transitions)} 条流转",
         )
 
     return (
@@ -1470,7 +1558,6 @@ def build_business_flows_html(data: dict[str, Any], *, skip_validation: bool = F
             stages = []
             problems.append(f"{name} 的 stages 必须是数组。")
 
-        participant_items: list[str] = []
         participant_types: set[str] = set()
         for p_index, participant in enumerate(participants, start=1):
             if not isinstance(participant, dict):
@@ -1485,8 +1572,6 @@ def build_business_flows_html(data: dict[str, Any], *, skip_validation: bool = F
                 if pattern.search(p_name):
                     problems.append(f"{name} 的参与方 `{p_name}` 应折叠为本系统动作，不应进入 HTML 时序。")
                     break
-            p_type_label = BUSINESS_PARTICIPANT_TYPE_LABELS.get(p_type, p_type)
-            participant_items.append(f"<li><strong>{escape_text(p_name)}</strong> <span>{escape_text(p_type_label)}</span></li>")
 
         if not skip_validation:
             if "system" not in participant_types:
@@ -1500,34 +1585,39 @@ def build_business_flows_html(data: dict[str, Any], *, skip_validation: bool = F
             "业务时序图",
             "business-sequence-diagram",
             build_sequence_mermaid(participants, steps),
+            summary=f"{name}的业务时序图包含 {len(participants)} 个参与方和 {len(steps)} 个步骤",
         )
 
-        stage_rows: list[str] = []
+        stage_cards: list[str] = []
         for stage in stages:
             if not isinstance(stage, dict):
                 problems.append(f"{name} 的阶段必须是对象。")
                 continue
-            stage_rows.append(
-                "<tr>"
-                f"<td>{escape_text(stage.get('name'), '未确认：阶段')}</td>"
-                f"<td>{escape_text(stage.get('action'), '未确认：做什么')}</td>"
-                f"<td>{escape_text(stage.get('reason'), '未确认：为什么需要')}</td>"
-                f"<td>{escape_text(stage.get('failure'), '未确认：失败处理')}</td>"
-                "</tr>"
+            stage_cards.append(
+                '<article class="stage-card">'
+                f"<h4>{escape_text(stage.get('name'), '未确认：阶段')}</h4>"
+                '<dl class="stage-meta">'
+                f"<div><dt>动作</dt><dd>{escape_text(stage.get('action'), '未确认：做什么')}</dd></div>"
+                f"<div><dt>目的</dt><dd>{escape_text(stage.get('reason'), '未确认：为什么需要')}</dd></div>"
+                f"<div><dt>失败</dt><dd>{escape_text(stage.get('failure'), '未确认：失败处理')}</dd></div>"
+                "</dl>"
+                "</article>"
             )
-        if not stage_rows:
-            stage_rows.append("<tr><td>未确认</td><td>未确认</td><td>未确认</td><td>未确认</td></tr>")
+        if not stage_cards:
+            stage_cards.append(
+                '<article class="stage-card"><h4>未确认：阶段</h4>'
+                '<dl class="stage-meta"><div><dt>动作</dt><dd>未确认</dd></div>'
+                '<div><dt>目的</dt><dd>未确认</dd></div><div><dt>失败</dt><dd>未确认</dd></div></dl></article>'
+            )
 
         sections.append(
             '<article class="business-flow">'
             f"<h3>{escape_text(name)}</h3>"
             f'<p class="business-flow-intent">{escape_text(intent)}</p>'
             f"{sequence_html}"
-            '<div class="table-wrap"><table><thead><tr>'
-            "<th>阶段</th><th>做什么</th><th>为什么需要</th><th>失败处理</th>"
-            "</tr></thead><tbody>"
-            f'{"".join(stage_rows)}'
-            "</tbody></table></div>"
+            '<div class="stage-grid" aria-label="阶段拆解">'
+            f'{"".join(stage_cards)}'
+            "</div>"
             "</article>"
         )
 
@@ -1613,10 +1703,10 @@ def validate_rendered(rendered: str) -> None:
 
 def validate_output_path(path: Path) -> None:
     parts = path.parts
-    if path.name == "project-context.tmp.html" and len(parts) >= 2 and parts[-2] == ".ai":
-        raise SystemExit("不要生成临时 HTML；请直接输出 .ai/project-context.html，脚本会自动备份旧版。")
-    if path.name == "project-context.tmp.html" and len(parts) >= 3 and parts[-3:] == (".ai", "drafts", "project-context.tmp.html"):
-        raise SystemExit("不要生成临时 HTML；请直接输出 .ai/project-context.html，脚本会自动备份旧版。")
+    if path.name == "project-context.tmp.html" and len(parts) >= 3 and parts[-3:-1] == (".ai", "ledev"):
+        raise SystemExit("不要生成临时 HTML；请直接输出 .ai/ledev/project-context.html，脚本会自动备份旧版。")
+    if path.name == "project-context.tmp.html" and len(parts) >= 4 and parts[-4:] == (".ai", "ledev", "drafts", "project-context.tmp.html"):
+        raise SystemExit("不要生成临时 HTML；请直接输出 .ai/ledev/project-context.html，脚本会自动备份旧版。")
 
 
 def html_backup_dir(path: Path) -> Path:
@@ -1684,8 +1774,20 @@ def main() -> int:
     validate_output_path(args.out)
     data = load_json(args.data)
     placeholders = normalize_placeholders(data)
+    validate_plain_placeholder_html(
+        placeholders,
+        skip=args.data.name == "project-context-html-data-template.json",
+    )
+    placeholders["BUSINESS_CONFIDENCE_CLASS"] = status_badge_class(placeholders.get("BUSINESS_CONFIDENCE"), "inferred")
+    placeholders["STATE_MACHINE_STATUS_CLASS"] = status_badge_class(placeholders.get("STATE_MACHINE_STATUS"), "open")
+    placeholders["SECURITY_STATUS_CLASS"] = status_badge_class(placeholders.get("SECURITY_STATUS"), "risk")
     placeholders["BUSINESS_FLOWS_HTML"] = build_business_flows_html(
         data,
+        skip_validation=args.data.name == "project-context-html-data-template.json",
+    )
+    placeholders["SCOPE_BOUNDARY_HTML"] = build_scope_boundary_html(
+        data,
+        placeholders,
         skip_validation=args.data.name == "project-context-html-data-template.json",
     )
     placeholders["CONFIGURATION_HTML"] = build_configuration_html(

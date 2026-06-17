@@ -1,22 +1,26 @@
 ---
 name: ledev-tool
-description: 不可用：该 skill 尚未完成开发和验证，不应被用于创建工具、脚本、生成器或项目自动化。请先使用 ledev-context 建立项目上下文，等待该 skill 正式开发后再启用。
+description: 不可用：该 skill 尚未完成开发和验证，不应被用于创建工具、脚本、生成器或项目自动化。等待该 skill 正式开发并启用。
 ---
 
 # Tool Generator
 
 > Status: unavailable
 >
-> 该 skill 尚未完成开发和验证。不要按本文档执行工具生成工作流；需要创建工具或脚本时，先使用 `ledev-context` 建立项目上下文，并按用户明确指令手动处理。
+> 该 skill 尚未完成开发和验证。不要按本文档执行工具生成工作流；需要创建工具或脚本时，按用户明确指令使用当前可用的项目工具处理。
 
 ## Inputs
 
 Read, when present:
 
-- `.ai/project-context.md`
-- `.ai/state/ledev-tool.md`
-- relevant `.ai/state/ledev-*.md` files when the tool supports another skill workflow
-- language rules identified by `ledev-context`
+- `.ai/ledev/project-context.md`
+- `.ai/ledev/scope/scan-scope.md`
+- `.ai/ledev/facts/related-repos.md`
+- `.ai/ledev/state/ledev-tool.md`
+- relevant `.ai/ledev/state/ledev-*.md` files when the tool supports another skill workflow
+- relevant language rules when available
+
+If existing project artifacts declare `Primary repo` and `Related repos`, they can be used as optional evidence. Their absence must not trigger another skill or block tool work. Generated tools default to the primary repo write boundary; related repos can provide API/protocol/reference facts but must not be modified unless the user explicitly requests a cross-repo tool.
 
 ## 文件布局约定
 
@@ -42,8 +46,8 @@ Read, when present:
    - Avoid hidden network access unless explicitly required.
    - Do not overwrite user changes without an explicit flag or confirmation path.
 
-4. Coordinate with context.
-   - If the tool becomes part of normal workflow, update `.ai/project-context.md` or project docs with its command.
+4. Coordinate documentation.
+   - If the tool becomes part of normal workflow, update project docs with its command when the task includes documentation changes.
    - Record tool purpose, invocation, and output location.
 
 5. Validate.
