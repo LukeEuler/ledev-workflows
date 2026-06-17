@@ -1,0 +1,1572 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{PROJECT_NAME}} - 项目上下文</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #ffffff;
+      --paper: #ffffff;
+      --paper-warm: #fbfaf7;
+      --ink: #20201c;
+      --muted: #6f6a5f;
+      --line: #ece8df;
+      --line-strong: #d2c8b7;
+      --nav: #f6f4ef;
+      --nav-ink: #25231d;
+      --nav-hover: #ebe7df;
+      --theme: #a8780a;
+      --accent: var(--theme);
+      --accent-strong: var(--theme);
+      --accent-soft: #f2ead7;
+      --risk: #8d3d31;
+      --risk-soft: #efe0d9;
+      --open: #745817;
+      --open-soft: #eadfbd;
+      --confirmed: #315f48;
+      --confirmed-soft: #dfe9e2;
+      --inferred: #7b5b13;
+      --inferred-soft: #f1e6c8;
+      --shadow: 0 8px 24px rgb(52 43 28 / 4%);
+      --radius: 8px;
+      --sidebar-w: 260px;
+      --header-h: 56px;
+      --content-max: 900px;
+      --section-gap: 3.35rem;
+      --block-gap: 1.45rem;
+      --motion-fast: 140ms;
+      --motion-med: 220ms;
+      --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+      --mono: "SFMono-Regular", "Cascadia Mono", Consolas, "Liberation Mono", monospace;
+      --sans: "LXGW WenKai Screen", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+      --serif: "Noto Serif SC", "Songti SC", "STSong", Georgia, serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: calc(var(--header-h) + 32px);
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--sans);
+      line-height: 1.65;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a {
+      color: inherit;
+      transition: color var(--motion-fast) var(--ease-standard), text-decoration-color var(--motion-fast) var(--ease-standard);
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    [tabindex]:focus-visible {
+      outline: 2px solid var(--theme);
+      outline-offset: 3px;
+    }
+
+    code,
+    pre {
+      font-family: var(--mono);
+      font-size: 0.92em;
+    }
+
+    code {
+      padding: 0.12rem 0.32rem;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: #fbfaf7;
+      color: var(--theme);
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    pre {
+      overflow-x: auto;
+      padding: 1rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper-warm);
+      color: var(--ink);
+      line-height: 1.55;
+    }
+
+    pre code {
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: inherit;
+    }
+
+    .shell {
+      min-height: 100vh;
+    }
+
+    .skip-link {
+      position: absolute;
+      left: -9999px;
+      top: 8px;
+      z-index: 1000;
+      padding: 0.5rem 0.9rem;
+      border-radius: 4px;
+      background: var(--theme);
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .skip-link:focus {
+      left: 16px;
+    }
+
+    .topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      height: var(--header-h);
+      padding: 0 1.5rem;
+      border-bottom: 1px solid var(--line);
+      background: rgb(255 255 255 / 88%);
+      backdrop-filter: blur(16px) saturate(1.3);
+    }
+
+    .topbar-brand {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--theme);
+      letter-spacing: 0;
+    }
+
+    .side-nav {
+      position: fixed;
+      top: var(--header-h);
+      left: 0;
+      bottom: 0;
+      z-index: 90;
+      width: var(--sidebar-w);
+      overflow-y: auto;
+      padding: 1.75rem 0 2rem;
+      background: var(--nav);
+      color: var(--nav-ink);
+      border-right: 1px solid var(--line);
+    }
+
+    .brand {
+      display: block;
+      padding: 0 1.25rem 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--line);
+      text-decoration: none;
+    }
+
+    .brand strong {
+      display: block;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      line-height: 1.2;
+      text-transform: uppercase;
+    }
+
+    .brand span {
+      display: block;
+      margin-top: 0.35rem;
+      color: #726b5e;
+      font-size: 0.78rem;
+    }
+
+    .nav-list {
+      display: grid;
+      gap: 0;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .nav-list a {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      min-height: 2.75rem;
+      padding: 0.55rem 1.25rem;
+      border-left: 3px solid transparent;
+      border-radius: 0;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 400;
+      transition: background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard);
+    }
+
+    .nav-num {
+      min-width: 1.5rem;
+      text-align: right;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+    }
+
+    .nav-list a:hover,
+    .nav-list a.is-active {
+      background: var(--nav-hover);
+      border-left-color: #b8ad9c;
+      color: var(--theme);
+      font-weight: 700;
+    }
+
+    .nav-list a:hover .nav-num,
+    .nav-list a.is-active .nav-num {
+      color: var(--theme);
+    }
+
+    .main {
+      min-width: 0;
+      margin-left: var(--sidebar-w);
+      padding-left: 3.5rem;
+      padding-right: 3.5rem;
+      padding-top: var(--header-h);
+    }
+
+    .hero {
+      max-width: var(--content-max);
+      padding: 3.4rem 0 2.3rem;
+      margin: 0 auto;
+      background: var(--paper);
+    }
+
+    .eyebrow {
+      margin: 0 0 0.95rem;
+      color: var(--theme);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      line-height: 1.18;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      max-width: 58rem;
+      font-family: var(--serif);
+      font-size: clamp(2.1rem, 4vw, 3.6rem);
+      font-weight: 700;
+    }
+
+    .lead {
+      max-width: 52rem;
+      margin: 1.15rem 0 0;
+      color: var(--muted);
+      font-size: 1.08rem;
+    }
+
+    .hero-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      margin-top: 1.25rem;
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 1.75rem;
+      padding: 0.25rem 0.64rem;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--nav);
+      color: var(--accent-strong);
+      font-family: var(--mono);
+      font-size: 0.74rem;
+      font-weight: 700;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+
+    .content {
+      max-width: var(--content-max);
+      padding: 2.4rem 0 5rem;
+      margin: 0 auto;
+    }
+
+    .section {
+      position: relative;
+      padding: var(--section-gap) 0;
+      scroll-margin-top: calc(var(--header-h) + 1rem);
+      transition: background-color var(--motion-med) var(--ease-standard);
+    }
+
+    .section:first-child {
+      padding-top: 2.5rem;
+    }
+
+    .section-header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.9rem 1rem;
+      align-items: baseline;
+      margin-bottom: var(--block-gap);
+    }
+
+    .section-header::after {
+      content: "";
+      grid-column: 1 / -1;
+      order: 2;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .section-header > div:not(.section-title):not(.status-row) {
+      order: 3;
+      grid-column: 1 / -1;
+    }
+
+    .section-header > .badge,
+    .section-header > .status-row {
+      order: 1;
+      margin-left: auto;
+    }
+
+    .section-title {
+      display: flex;
+      order: 1;
+      min-width: 0;
+      gap: 0.85rem;
+      align-items: baseline;
+    }
+
+    .section-num {
+      color: var(--theme);
+      font-family: var(--mono);
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    h2 {
+      font-size: clamp(1.45rem, 2.4vw, 1.85rem);
+      font-family: var(--serif);
+      font-weight: 500;
+    }
+
+    h3 {
+      margin-top: 1.35rem;
+      font-size: 1.05rem;
+    }
+
+    .summary {
+      margin: 0.5rem 0 0;
+      color: var(--muted);
+      max-width: 58rem;
+      line-height: 1.68;
+    }
+
+    .status-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      align-items: center;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.42rem;
+      min-height: 1.8rem;
+      padding: 0.25rem 0.58rem;
+      border: 1px solid var(--line-strong);
+      border-radius: 5px;
+      background: var(--paper);
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .badge::before {
+      content: "";
+      width: 0.42rem;
+      height: 0.42rem;
+      border-radius: 999px;
+      background: currentColor;
+      opacity: 0.85;
+    }
+
+    .badge.confirmed {
+      border-color: rgb(49 95 72 / 32%);
+      background: var(--confirmed-soft);
+      color: var(--confirmed);
+    }
+
+    .badge.inferred {
+      border-color: rgb(123 91 19 / 34%);
+      border-style: dashed;
+      background: var(--inferred-soft);
+      color: var(--inferred);
+    }
+
+    .badge.risk {
+      border-color: rgb(141 61 49 / 38%);
+      background: var(--risk-soft);
+      color: var(--risk);
+    }
+
+    .badge.open {
+      border-color: rgb(116 88 23 / 34%);
+      border-style: dotted;
+      background: var(--open-soft);
+      color: var(--open);
+    }
+
+    .grid-2,
+    .grid-3 {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .panel {
+      min-width: 0;
+      padding: 1.2rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper);
+      box-shadow: var(--shadow);
+      transition: border-color var(--motion-med) var(--ease-standard), box-shadow var(--motion-med) var(--ease-standard), background-color var(--motion-med) var(--ease-standard);
+    }
+
+    .panel:hover {
+      border-color: var(--line-strong);
+      box-shadow: 0 10px 28px rgb(52 43 28 / 5%);
+    }
+
+    .panel h3 {
+      margin-top: 0;
+    }
+
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      margin-top: 1rem;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 1.62rem;
+      padding: 0.22rem 0.58rem;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--nav);
+      color: var(--accent-strong);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      line-height: 1.2;
+      white-space: nowrap;
+      transition: border-color var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard);
+    }
+
+    .overview-lede {
+      max-width: 76ch;
+      margin: 0;
+      color: var(--ink);
+      font-size: 1.05rem;
+      line-height: 1.75;
+    }
+
+    .capability-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+      margin-top: 1.7rem;
+    }
+
+    .capability-card {
+      min-width: 0;
+      padding: 1rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+
+    .capability-card h3 {
+      margin: 0;
+      color: var(--ink);
+      font-size: 1rem;
+    }
+
+    .capability-card p {
+      margin: 0.55rem 0 0;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .business-flows {
+      display: grid;
+      gap: 1.35rem;
+    }
+
+    .business-flow {
+      min-width: 0;
+      padding: 1rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+
+    .business-flow h3 {
+      margin: 0;
+      color: var(--ink);
+      font-size: 1.05rem;
+    }
+
+    .business-flow-intent {
+      margin: 0.55rem 0 0;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .participant-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin: 0.95rem 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .participant-list li {
+      padding: 0.35rem 0.55rem;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--nav);
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .sequence-flow {
+      display: grid;
+      gap: 0.55rem;
+      margin: 1rem 0;
+      padding-left: 0;
+      list-style: none;
+      counter-reset: sequence-step;
+    }
+
+    .sequence-flow li {
+      display: grid;
+      grid-template-columns: 2rem minmax(0, 1fr);
+      gap: 0.65rem;
+      align-items: start;
+      counter-increment: sequence-step;
+    }
+
+    .sequence-flow li::before {
+      content: counter(sequence-step);
+      display: grid;
+      width: 1.75rem;
+      height: 1.75rem;
+      place-items: center;
+      border-radius: 999px;
+      background: var(--nav);
+      color: var(--theme);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 800;
+    }
+
+    .model-blocks {
+      display: grid;
+      gap: 1.25rem;
+    }
+
+    .model-domain-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.85rem;
+      margin-top: 0.95rem;
+    }
+
+    .model-domain {
+      min-width: 0;
+      padding: 0.9rem;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--paper-warm);
+    }
+
+    .model-domain h3 {
+      margin: 0;
+      font-size: 0.98rem;
+    }
+
+    .model-domain p {
+      margin: 0.45rem 0 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .model-domain ul {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.42rem;
+      margin: 0.7rem 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .model-domain li {
+      padding: 0.2rem 0.5rem;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--paper);
+      color: var(--theme);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    .model-meta {
+      display: grid;
+      gap: 0.35rem;
+      margin: 0.75rem 0 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .model-meta div {
+      display: grid;
+      grid-template-columns: 4.5rem minmax(0, 1fr);
+      gap: 0.5rem;
+    }
+
+    .model-meta dt {
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .model-meta dd {
+      margin: 0;
+    }
+
+    .state-flow {
+      display: grid;
+      gap: 0.6rem;
+      margin: 0.95rem 0 1rem;
+      padding: 0;
+      list-style: none;
+    }
+
+    .state-flow li {
+      display: grid;
+      grid-template-columns: minmax(8rem, 1fr) 5.2rem minmax(8rem, 1fr);
+      gap: 0.65rem;
+      align-items: center;
+      padding: 0.75rem;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--paper-warm);
+      text-align: center;
+    }
+
+    .state-flow span {
+      color: var(--theme);
+      font-family: var(--mono);
+      font-size: 0.76rem;
+      font-weight: 800;
+    }
+
+    .state-flow span::before,
+    .state-flow span::after {
+      content: "";
+      display: inline-block;
+      width: 0.55rem;
+      height: 1px;
+      margin: 0 0.35rem 0.18rem;
+      background: var(--line-strong);
+    }
+
+    .state-flow strong {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .state-flow em {
+      grid-column: 1 / -1;
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-style: normal;
+    }
+
+    .panel p:last-child,
+    .panel ul:last-child,
+    .panel ol:last-child {
+      margin-bottom: 0;
+    }
+
+    .callout {
+      padding: 1.05rem 1.1rem;
+      border-left: 3px solid var(--accent);
+      background: var(--paper);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      transition: border-color var(--motion-med) var(--ease-standard), background-color var(--motion-med) var(--ease-standard);
+    }
+
+    .callout.risk {
+      border-left-color: var(--theme);
+      background: var(--paper);
+    }
+
+    .callout.warn {
+      border-left-color: var(--open);
+      background: var(--paper-warm);
+    }
+
+    .callout.info {
+      border-left-color: var(--confirmed);
+      background: var(--paper-warm);
+    }
+
+    .security-blocks {
+      display: grid;
+      gap: 1.25rem;
+    }
+
+    .security-concern-list {
+      display: grid;
+      gap: 0.65rem;
+      margin: 0.85rem 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .security-concern-list li {
+      display: grid;
+      gap: 0.22rem;
+      padding: 0.7rem 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .security-concern-list li:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .security-concern-list span,
+    .security-concern-list em {
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-style: normal;
+      line-height: 1.58;
+    }
+
+    .diagram {
+      margin: 1.15rem 0 1.35rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper);
+      overflow: hidden;
+    }
+
+    .diagram-label {
+      padding: 0.58rem 0.78rem;
+      border-bottom: 1px solid var(--line);
+      background: var(--paper-warm);
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .diagram-body {
+      padding: 0;
+      background: var(--paper);
+    }
+
+    .diagram pre {
+      margin: 0;
+      border: 0;
+      border-radius: 0;
+      background: var(--paper);
+    }
+
+    .flow {
+      display: grid;
+      gap: 0.65rem;
+      margin: 1rem 0;
+    }
+
+    .flow-step {
+      display: grid;
+      grid-template-columns: 2rem minmax(0, 1fr);
+      gap: 0.75rem;
+      align-items: start;
+    }
+
+    .flow-step span {
+      display: grid;
+      width: 2rem;
+      height: 2rem;
+      place-items: center;
+      border-radius: 999px;
+      background: var(--nav);
+      color: var(--nav-ink);
+      font-weight: 700;
+    }
+
+    .arch-html {
+      display: block;
+      margin: 1.6rem 0 2rem;
+      padding: 1rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper);
+      text-align: center;
+    }
+
+    .arch-html-label,
+    .arch-tier-label,
+    .arch-svc-row-label {
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .arch-html-label {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      text-align: left;
+    }
+
+    .arch-html-label::before {
+      content: "";
+      width: 0.45rem;
+      height: 0.45rem;
+      border-radius: 999px;
+      background: var(--theme);
+    }
+
+    .arch-mid {
+      display: grid;
+      grid-template-columns: minmax(9rem, 0.85fr) minmax(18rem, 1.5fr) minmax(9rem, 0.85fr);
+      gap: 0.7rem;
+      align-items: center;
+    }
+
+    .arch-engine,
+    .arch-svc {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper);
+    }
+
+    .arch-col {
+      display: grid;
+      gap: 0.5rem;
+      align-content: center;
+      justify-content: stretch;
+      min-width: 0;
+      padding: 0;
+      background: transparent;
+    }
+
+    .arch-node,
+    .arch-svc {
+      padding: 0.75rem;
+    }
+
+    .arch-node {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper-warm);
+      text-align: center;
+    }
+
+    .arch-node strong,
+    .arch-svc strong {
+      display: block;
+      color: var(--ink);
+      font-size: 0.95rem;
+    }
+
+    .arch-node span,
+    .arch-svc span,
+    .arch-engine-head span {
+      display: block;
+      margin-top: 0.25rem;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.45;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .arch-node.is-db {
+      border-style: dashed;
+    }
+
+    .arch-node.is-coordinator {
+      border-color: var(--line-strong);
+    }
+
+    .arch-flow {
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.76rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    .arch-engine {
+      border: 1px solid var(--theme);
+      padding: 1.2rem;
+      min-height: 12rem;
+      display: grid;
+      align-content: center;
+      text-align: center;
+    }
+
+    .arch-engine-head strong {
+      display: block;
+      color: var(--accent-strong);
+      font-size: 1.25rem;
+    }
+
+    .arch-engine-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.5rem;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+
+    .arch-cap {
+      padding: 0.5rem 0.55rem;
+      border: 1px solid rgb(168 120 10 / 22%);
+      border-radius: 6px;
+      color: var(--theme);
+      font-size: 0.82rem;
+      font-weight: 750;
+      text-align: center;
+    }
+
+    .arch-svc-row-label {
+      margin-top: 0.9rem;
+    }
+
+    .arch-svc-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    }
+
+    .arch-svc {
+      text-align: center;
+    }
+
+    .scope-table {
+      margin-top: 1rem;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper);
+      transition: border-color var(--motion-med) var(--ease-standard), box-shadow var(--motion-med) var(--ease-standard);
+    }
+
+    table {
+      width: 100%;
+      min-width: 44rem;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 0.72rem 0.8rem;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--paper-warm);
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    tbody tr:hover {
+      background: rgb(246 244 239 / 55%);
+    }
+
+    tbody tr {
+      transition: background-color var(--motion-fast) var(--ease-standard);
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .index-list {
+      display: grid;
+      gap: 0.45rem;
+      margin-top: 0.9rem;
+      padding-left: 0;
+      list-style: none;
+    }
+
+    .index-list li {
+      padding: 0.62rem 0.78rem;
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--line-strong);
+      border-radius: 0 6px 6px 0;
+      background: var(--paper);
+      color: var(--muted);
+      font-size: 0.9rem;
+      overflow-wrap: anywhere;
+      transition: border-color var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard);
+    }
+
+    .project-conventions strong {
+      display: block;
+      color: var(--ink);
+    }
+
+    .project-conventions span {
+      display: block;
+      margin-top: 0.22rem;
+      color: var(--muted);
+      line-height: 1.58;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1.25rem;
+    }
+
+    .button {
+      border: 1px solid var(--line-strong);
+      border-radius: 6px;
+      background: var(--paper);
+      color: var(--ink);
+      cursor: pointer;
+      font: inherit;
+      font-weight: 700;
+      padding: 0.5rem 0.75rem;
+      text-decoration: none;
+      transition: border-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard);
+    }
+
+    .button:hover {
+      border-color: var(--theme);
+      color: var(--theme);
+    }
+
+    .footer {
+      padding: 1.5rem clamp(1rem, 4vw, 3.5rem);
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        transition: none !important;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .shell {
+        display: block;
+        padding-top: var(--header-h);
+      }
+
+      .topbar {
+        padding: 0 1rem;
+      }
+
+      .side-nav {
+        position: static;
+        width: auto;
+        height: auto;
+        padding: 1rem 0;
+      }
+
+      .nav-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .main {
+        margin-left: 0;
+        padding: 1rem 1.5rem;
+      }
+
+      .hero,
+      .content {
+        max-width: none;
+      }
+
+      .grid-2,
+      .grid-3,
+      .capability-grid,
+      .arch-mid,
+      .arch-engine-grid,
+      .arch-svc-row,
+      .model-domain-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .state-flow li {
+        grid-template-columns: 1fr;
+      }
+
+    }
+
+    @media (max-width: 560px) {
+      .section-header {
+        display: grid;
+        gap: 0.75rem;
+      }
+
+      .nav-list {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        padding-top: 1.4rem;
+      }
+
+      .hero-tags {
+        gap: 0.45rem;
+      }
+
+      .hero-tag {
+        max-width: 100%;
+        white-space: normal;
+      }
+    }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      .shell {
+        display: block;
+      }
+
+      .side-nav,
+      .topbar,
+      .toolbar {
+        display: none;
+      }
+
+      .hero,
+      .section,
+      .footer {
+        padding-left: 0;
+        padding-right: 0;
+      }
+
+      .content {
+        max-width: none;
+        padding: 0;
+      }
+
+      .main {
+        margin: 0;
+        padding: 0;
+      }
+
+      .panel,
+      .table-wrap {
+        box-shadow: none;
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">跳到正文</a>
+  <header class="topbar">
+    <span class="topbar-brand">Project Context</span>
+  </header>
+  <div class="shell">
+    <nav class="side-nav" aria-label="章节导航">
+      <a class="brand" href="#top">
+        <strong>Contents</strong>
+        <span>章节导航</span>
+      </a>
+      <ol class="nav-list">
+        <li><a href="#overview"><span class="nav-num">01</span><span>项目概述</span></a></li>
+        <li><a href="#architecture"><span class="nav-num">02</span><span>架构</span></a></li>
+        <li><a href="#business"><span class="nav-num">03</span><span>核心业务</span></a></li>
+        <li><a href="#models"><span class="nav-num">04</span><span>核心数据模型与状态机</span></a></li>
+        <li><a href="#security"><span class="nav-num">05</span><span>安全相关</span></a></li>
+        <li><a href="#dependencies"><span class="nav-num">06</span><span>上下游和服务依赖</span></a></li>
+        <li><a href="#configuration"><span class="nav-num">07</span><span>配置项</span></a></li>
+        <li><a href="#onboarding"><span class="nav-num">08</span><span>新人快速上手</span></a></li>
+        <li><a href="#recovery"><span class="nav-num">09</span><span>故障与恢复</span></a></li>
+        <li><a href="#conventions"><span class="nav-num">10</span><span>项目约定</span></a></li>
+        <li><a href="#specifics"><span class="nav-num">11</span><span>项目特化</span></a></li>
+      </ol>
+    </nav>
+
+    <main class="main" id="main-content">
+      <header class="hero" id="top">
+        <p class="eyebrow">Local Engineering Dossier</p>
+        <h1>{{PROJECT_NAME}}</h1>
+        <p class="lead">{{PROJECT_SUMMARY}}</p>
+        <div class="hero-tags" aria-label="主要组件和外部依赖">
+          <span class="hero-tag">{{HERO_TAG_1}}</span>
+          <span class="hero-tag">{{HERO_TAG_2}}</span>
+          <span class="hero-tag">{{HERO_TAG_3}}</span>
+          <span class="hero-tag">{{HERO_TAG_4}}</span>
+          <span class="hero-tag">{{HERO_TAG_5}}</span>
+          <span class="hero-tag">{{HERO_TAG_6}}</span>
+        </div>
+      </header>
+
+      <div class="content">
+        <section class="section" id="overview">
+          <div class="section-header">
+            <div class="section-title">
+              <span class="section-num">01</span>
+              <h2>项目概述</h2>
+            </div>
+          </div>
+          <p class="overview-lede">{{PROJECT_POSITIONING}}</p>
+          <div class="capability-grid" aria-label="核心能力卡">
+            <article class="capability-card">
+              <h3>{{CORE_CAPABILITY_1_NAME}}</h3>
+              <p>{{CORE_CAPABILITY_1_SUMMARY}}</p>
+            </article>
+            <article class="capability-card">
+              <h3>{{CORE_CAPABILITY_2_NAME}}</h3>
+              <p>{{CORE_CAPABILITY_2_SUMMARY}}</p>
+            </article>
+            <article class="capability-card">
+              <h3>{{CORE_CAPABILITY_3_NAME}}</h3>
+              <p>{{CORE_CAPABILITY_3_SUMMARY}}</p>
+            </article>
+            <article class="capability-card">
+              <h3>{{CORE_CAPABILITY_4_NAME}}</h3>
+              <p>{{CORE_CAPABILITY_4_SUMMARY}}</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="architecture">
+          <div class="section-header">
+            <div class="section-title">
+              <span class="section-num">02</span>
+              <h2>架构</h2>
+            </div>
+            <div>
+              <p class="summary">{{ARCHITECTURE_SUMMARY}}</p>
+            </div>
+          </div>
+          <div class="arch-html">
+            <div class="arch-html-label">系统组件全景</div>
+            <div class="arch-mid">
+              <div class="arch-col">
+                <div class="arch-tier-label">{{LEFT_TIER_TITLE}}</div>
+                <div class="arch-node">
+                  <strong>{{LEFT_TIER_ITEM_1}}</strong>
+                  <span>{{LEFT_TIER_ITEM_1_NOTE}}</span>
+                </div>
+                <div class="arch-flow">↓ {{LEFT_TIER_FLOW}}</div>
+                <div class="arch-node is-db">
+                  <strong>{{LEFT_TIER_ITEM_2}}</strong>
+                  <span>{{LEFT_TIER_ITEM_2_NOTE}}</span>
+                </div>
+              </div>
+
+              <div class="arch-engine">
+                <div class="arch-engine-head">
+                  <strong>{{ENGINE_NAME}}</strong>
+                  <span>{{ENGINE_RUNTIME_SHAPE}}</span>
+                </div>
+                <div class="arch-engine-grid" aria-label="核心执行能力">
+                  <div class="arch-cap">{{ENGINE_CAPABILITY_1}}</div>
+                  <div class="arch-cap">{{ENGINE_CAPABILITY_2}}</div>
+                  <div class="arch-cap">{{ENGINE_CAPABILITY_3}}</div>
+                  <div class="arch-cap">{{ENGINE_CAPABILITY_4}}</div>
+                </div>
+              </div>
+
+              <div class="arch-col">
+                <div class="arch-tier-label">{{RIGHT_TIER_TITLE}}</div>
+                <div class="arch-node is-coordinator">
+                  <strong>{{RIGHT_TIER_ITEM_1}}</strong>
+                  <span>{{RIGHT_TIER_ITEM_1_NOTE}}</span>
+                </div>
+                <div class="arch-flow">↓ {{RIGHT_TIER_FLOW}}</div>
+                <div class="arch-node is-db">
+                  <strong>{{RIGHT_TIER_ITEM_2}}</strong>
+                  <span>{{RIGHT_TIER_ITEM_2_NOTE}}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="arch-svc-row-label">{{BOTTOM_TIER_TITLE}}</div>
+            <div class="arch-svc-row">
+              <div class="arch-svc"><strong>{{BOTTOM_TIER_ITEM_1}}</strong><span>{{BOTTOM_TIER_ITEM_1_NOTE}}</span></div>
+              <div class="arch-svc"><strong>{{BOTTOM_TIER_ITEM_2}}</strong><span>{{BOTTOM_TIER_ITEM_2_NOTE}}</span></div>
+              <div class="arch-svc"><strong>{{BOTTOM_TIER_ITEM_3}}</strong><span>{{BOTTOM_TIER_ITEM_3_NOTE}}</span></div>
+              <div class="arch-svc"><strong>{{BOTTOM_TIER_ITEM_4}}</strong><span>{{BOTTOM_TIER_ITEM_4_NOTE}}</span></div>
+            </div>
+          </div>
+          <div class="table-wrap scope-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>边界</th>
+                  <th>说明</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>项目负责范围</td>
+                  <td>{{PROJECT_OWNED_SCOPE}}</td>
+                </tr>
+                <tr>
+                  <td>不负责的范围</td>
+                  <td>{{PROJECT_OUT_OF_SCOPE}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="section" id="business">
+          <div class="section-header">
+            <div class="section-title">
+              <span class="section-num">03</span>
+              <h2>核心业务</h2>
+            </div>
+            <div>
+              <p class="summary">{{BUSINESS_SUMMARY}}</p>
+            </div>
+            <span class="badge inferred">{{BUSINESS_CONFIDENCE}}</span>
+          </div>
+          {{BUSINESS_FLOWS_HTML}}
+        </section>
+
+        <section class="section" id="models">
+          <div class="section-header">
+            <div class="section-title">
+              <span class="section-num">04</span>
+              <h2>核心数据模型与状态机</h2>
+            </div>
+            <div>
+              <p class="summary">{{MODEL_SUMMARY}}</p>
+            </div>
+            <span class="badge open">{{STATE_MACHINE_STATUS}}</span>
+          </div>
+          {{MODEL_HTML}}
+        </section>
+
+        <section class="section" id="security">
+          <div class="section-header">
+            <div class="section-title">
+              <span class="section-num">05</span>
+              <h2>安全相关</h2>
+            </div>
+            <div>
+              <p class="summary">{{SECURITY_SUMMARY}}</p>
+            </div>
+            <span class="badge risk">{{SECURITY_STATUS}}</span>
+          </div>
+          {{SECURITY_HTML}}
+        </section>
+
+        <section class="section" id="dependencies">
+          <div class="section-header">
+            <div class="section-title">
+              <span class="section-num">06</span>
+              <h2>上下游和服务依赖</h2>
+            </div>
+            <div>
+              <p class="summary">{{DEPENDENCY_SUMMARY}}</p>
+            </div>
+          </div>
+          {{DEPENDENCIES_HTML}}
+        </section>
+
+        <section class="section" id="configuration">
+          <div class="section-header">
+            <div class="section-title">
+              <span class="section-num">07</span>
+              <h2>配置项</h2>
+            </div>
+            <div>
+              <p class="summary">{{CONFIG_SUMMARY}}</p>
+            </div>
+          </div>
+          {{CONFIGURATION_HTML}}
+        </section>
+
+        <section class="section" id="onboarding">
+          <div class="section-header">
+            <div class="section-title">
+              <span class="section-num">08</span>
+              <h2>新人快速上手</h2>
+            </div>
+            <div>
+              <p class="summary">{{ONBOARDING_SUMMARY}}</p>
+            </div>
+          </div>
+          {{ONBOARDING_HTML}}
+        </section>
+
+        <section class="section" id="recovery">
+          <div class="section-header">
+            <div class="section-title">
+              <span class="section-num">09</span>
+              <h2>故障与恢复</h2>
+            </div>
+            <div>
+              <p class="summary">{{RECOVERY_SUMMARY}}</p>
+            </div>
+          </div>
+          {{RECOVERY_HTML}}
+        </section>
+
+        <section class="section" id="conventions">
+          <div class="section-header">
+            <div class="section-title">
+              <span class="section-num">10</span>
+              <h2>项目约定</h2>
+            </div>
+            <div>
+              <p class="summary">{{CONVENTION_SUMMARY}}</p>
+            </div>
+          </div>
+          {{PROJECT_CONVENTIONS_HTML}}
+        </section>
+
+        <section class="section" id="specifics">
+          <div class="section-header">
+            <div class="section-title">
+              <span class="section-num">11</span>
+              <h2>项目特化</h2>
+            </div>
+            <div>
+              <p class="summary">{{PROJECT_SPECIFIC_SUMMARY}}</p>
+            </div>
+          </div>
+          {{PROJECT_SPECIFICS_HTML}}
+        </section>
+      </div>
+
+      <footer class="footer">
+        <a href="#top">返回顶部</a>
+      </footer>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.6/dist/mermaid.min.js"></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: "base",
+        securityLevel: "strict",
+        flowchart: {
+          htmlLabels: false,
+          curve: "basis"
+        },
+        sequence: {
+          wrap: false
+        },
+        themeVariables: {
+          background: "#ffffff",
+          primaryColor: "#fbfaf7",
+          primaryTextColor: "#20201c",
+          primaryBorderColor: "#d2c8b7",
+          lineColor: "#a8780a",
+          secondaryColor: "#f6f4ef",
+          tertiaryColor: "#ffffff",
+          fontFamily: "LXGW WenKai Screen, PingFang SC, Hiragino Sans GB, Microsoft YaHei UI, Microsoft YaHei, sans-serif"
+        }
+      });
+    }
+
+    const links = Array.from(document.querySelectorAll(".nav-list a"));
+    const sections = links
+      .map((link) => document.querySelector(link.getAttribute("href")))
+      .filter(Boolean);
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        links.forEach((link) => {
+          link.classList.toggle("is-active", link.getAttribute("href") === `#${entry.target.id}`);
+        });
+      });
+    }, { rootMargin: "-20% 0px -70% 0px" });
+
+    sections.forEach((section) => observer.observe(section));
+  </script>
+</body>
+</html>
