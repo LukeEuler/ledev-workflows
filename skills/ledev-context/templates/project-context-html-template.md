@@ -30,7 +30,7 @@
 - 状态可见：confirmed、inferred、risk、open question 必须能通过文字、颜色和边框形态共同区分，不能只依赖颜色。
 - 工程查阅优先：首屏优先让读者知道“这个程序做什么”，使用一句话功能描述和少量主要组件/外部依赖标签；细节索引放入对应主题章节，不再单独设置收尾索引章节。
 - 密度有层级：允许高信息密度，但要用编号、表格、代码路径、状态标记和标题下结构线组织阅读节奏。
-- 本地可信：无外部网络依赖，生成物可离线打开、打印和长期追溯。
+- 本地可信：除固定 Mermaid 运行时外不引入外部网络依赖；网络不可用时图源和 fallback 提示仍可读，生成物可打开、打印和长期追溯。
 
 缺失和不确定内容使用固定表达：
 
@@ -80,7 +80,7 @@ HTML 必须包含以下章节，章节可有子标题，但不要省略主章节
 | --- | --- | --- | --- | --- | --- |
 | 01 | 项目概述 | `.ai/project-context.md` 的“1. 项目定位”和“5. 业务能力与模块划分”，必要时补充 QA 结论 | `PROJECT_POSITIONING`、`CORE_CAPABILITY_*_NAME`、`CORE_CAPABILITY_*_SUMMARY` | 展示一句话定位和核心能力卡。卡片只放能力名与一句话说明。 | 首屏只承载项目理解摘要：一句话程序功能描述和 3-6 个主要语言、框架、内部组件或外部依赖标签；标签必须来自事实层、依赖清单、配置、导入路径或项目上下文。不要放读者画像、运行阶段、事实层状态、skill 阶段或长句。 |
 | 02 | 架构 | `.ai/project-context.md` 的“3. 架构总览”、事实层架构事实、依赖和边界事实 | `arch-html`、`arch-html-label`、`arch-mid`、`arch-col`、`arch-engine`、`arch-engine-head`、`arch-engine-grid`、`arch-svc-row-label`、`arch-svc-row` | 严格使用模板 HTML 中的固定骨架画系统组件全景：外层 `arch-html`、标签、三列中段、中心 engine、底部服务行；只替换节点内容和占位符，不新增结构层级。 | 中心 `arch-engine` 必须展示程序本身，例如项目名、主二进制、核心服务名或核心 runtime；左右列只展示围绕程序本身的上游/输入侧和下游/输出侧组件短名；底部行只放运行时依赖组件。图中禁止写路径、QA、长句、构建工具、测试工具、dev scripts、generated/third-party 边界。`FLOW` 必须是 1-3 个动词，所有 `NOTE` 约 6-10 字、简单干练。缺失关系不要编造，写“未确认”。架构图下方必须保留“项目负责范围”和“不负责范围”表。 |
-| 03 | 核心业务 | `.ai/project-context.md` 的“9. 关键业务流程”，必要时参考“5. 业务能力与模块划分”和长期 QA | `BUSINESS_FLOWS_HTML`、Mermaid `sequenceDiagram`、流程阶段表、`BUSINESS_CONFIDENCE` | 按业务流程逐条展示：每条流程独立标题、业务意图、脚本生成的时序图和阶段说明表，避免把未经确认的业务推断写成事实。 | 参与方只允许外部触发源、本系统整体、直接外部下游或承载业务语义的消息/锁等中间件；内部类、Controller、Service、Task、Cache、Util、Manager、DB、配置中心和监控系统不要作为 Mermaid 参与方。 |
+| 03 | 核心业务 | `.ai/project-context.md` 的“9. 关键业务流程”，必要时参考“5. 业务能力与模块划分”和长期 QA | `BUSINESS_FLOWS_HTML`、Mermaid `sequenceDiagram`、阶段卡片、`BUSINESS_CONFIDENCE` | 按业务流程逐条展示：每条流程独立标题、业务意图、脚本生成的时序图和轻量阶段卡片，避免把未经确认的业务推断写成事实。 | 参与方只允许外部触发源、本系统整体、直接外部下游或承载业务语义的消息/锁等中间件；内部类、Controller、Service、Task、Cache、Util、Manager、DB、配置中心和监控系统不要作为 Mermaid 参与方。 |
 | 04 | 核心数据模型与状态机 | `.ai/project-context.md` 的“8. 核心数据与状态模型”、事实层模型事实、枚举/状态事实和必要 QA | `MODEL_HTML`、Mermaid `flowchart TB` ER 图、Mermaid `stateDiagram-v2` 状态机图、`STATE_MACHINE_STATUS` | 按数据域、核心对象、对象关系、状态机和状态流转渲染为图；没有状态机时明确写未发现。 | HTML 数据来自 `data_domains`、`data_entities`、`data_relations`、`state_machine`。状态名优先保留中文名、枚举名和数值，展示为 `中文名(ENUM_NAME=数值)`。最终 HTML 不展示证据、路径、QA 索引或内部来源；字段级大表、DDL、包路径和方法签名只用于判断，不进入页面主体。 |
 | 05 | 安全相关 | `.ai/project-context.md` 的“10. 安全防控”、配置事实、依赖事实、QA | `SECURITY_HTML`、`security-blocks`、`security-controls`、`crypto-scenarios`、`security-concerns`、`SECURITY_STATUS` | 展示业务安全表、加密相关场景表和安全关注点；依据不足时标注未确认。 | HTML 数据来自 `security_controls`、`crypto_scenarios`、`security_concerns`。业务安全表字段为防控点、防什么、怎么防、失败结果；加密相关只展示场景、保护对象、加密/签名/脱敏手段、凭据托管概念级位置和失败结果；关注点用 `callout.warn`。最终 HTML 不展示证据、路径、QA 索引、具体凭据变量名、密钥值、算法参数明细、完整标准对照或审计打分。 |
 | 06 | 上下游和服务依赖 | `.ai/project-context.md` 的“12. 外部依赖与集成”、依赖事实、架构事实 | `DEPENDENCIES_HTML`、Mermaid `flowchart TB` 链路图 | 展示上下游服务、运行时外部依赖、调用方向、协议/方式、认证方式和失败传播。 | 链路图箭头必须标注方向、协议和认证方式；只记录运行时真实交互，不渲染 `go.mod`、`Makefile`、CI、lint、测试、dev scripts、generated 或 third-party 目录边界。 |
@@ -102,7 +102,7 @@ HTML 必须包含以下章节，章节可有子标题，但不要省略主章节
 - 顶部 header、左侧 sidebar 和正文 hero 不要重复展示同一个项目名。默认只在正文 hero 使用项目名；header 只展示文档类型或文件名；sidebar 展示 `Contents` 或“章节导航”。
 - 导航目录和正文主章节标题都要带两位编号，例如 `01 项目概述`、`02 架构`，方便快速定位；编号必须和固定章节顺序一致。正文标题结构应使用独立编号元素，例如 `<span class="section-num">01</span><h2>项目概述</h2>`，不要把编号直接拼进标题文本。
 - 左侧 sidebar 和正文之间必须保留明确横向留白。桌面端正文容器不应贴着导航边界，主内容区域应在 sidebar 之后再留出至少 `48px` 左右的视觉缓冲。
-- 用状态标记区分 confirmed、inferred、risk、open question。状态标记不能只靠颜色表达，还要通过文本标签、边框样式或小型符号区分；confirmed 偏稳态，inferred 偏待确认，risk 偏阻断或风险，open question 偏待人工回答。
+- 用状态标记区分 confirmed、inferred、risk、open question。状态标记不能只靠颜色表达，还要通过文本标签、边框样式或小型符号区分；confirmed 偏稳态，inferred 偏待确认，risk 偏阻断或风险，open question 偏待人工回答。状态样式 class 由脚本根据状态文案归类，不要在 JSON 中手动拼 class。
 - 用表格、定义列表、时间线、流程图或架构图承载结构化信息。
 - 风险和演进方向要突出，但必须有事实依据或明确标注为建议。
 - 默认颜色以纯白和极浅暖白为主，导航背景应比正文略暗、略退后，不能比正文更白亮。避免渐变背景和大面积色块，让内容成为主角。
@@ -114,7 +114,7 @@ HTML 必须包含以下章节，章节可有子标题，但不要省略主章节
 - 视觉节奏应有清晰的停顿和轻重：首屏快速定位，章节之间主要依靠稳定留白，不额外添加章节前后分割线；章节标题下保留结构线，架构/表格区域可以更密但必须有明确锚点，普通段落和摘要留出阅读呼吸。
 - 避免营销式 hero、空泛装饰、过度渐变、无信息图形、大段无结构文本和过于紧凑的表格堆叠。
 - 标签使用小号方角 chip：mono 字体、低高度、4px 左右圆角、浅灰底或白底、主题色文字；不要使用大号胶囊标签。
-- Mermaid 图使用固定版本 `mermaid@10.9.6` 渲染。图源必须由 `scripts/render_project_context_html.py` 从结构化 JSON 生成，AI 不直接手写 Mermaid；脚本负责 id、participant、label 的字符清理和 Mermaid 关键字规避。模板仍保留本地字体回退；网络不可用时 `<pre class="mermaid">` 中的图源保留为可读降级内容。
+- Mermaid 图使用固定版本 `mermaid@10.9.6` 渲染。图源必须由 `scripts/render_project_context_html.py` 从结构化 JSON 生成，AI 不直接手写 Mermaid；脚本负责 id、participant、label 的字符清理和 Mermaid 关键字规避，并从同一份结构化 JSON 生成图的无障碍短摘要。图容器必须支持横向滚动；网络不可用时 `<pre class="mermaid">` 中的图源和 fallback 提示保留为可读降级内容。
 - 响应式布局必须可读：长路径、命令、表格不能溢出；移动端导航不能遮挡正文。
 - 可打印：打印时隐藏交互控件，保留章节层级、表格和导航索引。
 
@@ -130,6 +130,6 @@ HTML 必须包含以下章节，章节可有子标题，但不要省略主章节
 - 重要结论来自事实层或长期 QA，且没有把内部依据路径展示到 HTML。
 - `.ai/project-context.md` 中的 Human Notes、Corrections 和关键 QA 结论没有丢失。
 - HTML 中没有把 inferred assumptions 写成 confirmed facts。
-- 页面无外部网络依赖，除非用户明确允许。
+- 除固定 Mermaid 运行时外，页面无外部网络依赖；Mermaid 加载失败时必须保留可读 fallback。
 - CSS 对移动端、桌面端和打印都有基本处理。
 - 已存在 `.ai/project-context.html` 时，脚本先备份旧版到 `.ai/drafts/project-context.<timestamp>.html`，再覆盖 `.ai/project-context.html`；运行后必须提示可用 `rollback` 回退。

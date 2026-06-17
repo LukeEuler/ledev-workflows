@@ -313,7 +313,7 @@ HTML 固定章节：
 
 - 项目概述：一句话定位和核心能力卡。一句话定位来自 `.ai/project-context.md` 的“1. 项目定位”；核心能力卡必须覆盖 `.ai/project-context.md` 的“5. 业务能力与模块划分”中的业务能力，不覆盖工程支撑能力；卡片只展示能力名称和一句话能力定位/解决的问题。关键代码和外部依赖放在后续业务或依赖章节。
 - 架构：严格使用 `arch-html` 系统组件全景结构表达模块地图、调用方向、边界、入口、关键数据流和外部边界；可以替换节点名称和说明，但不要扩展或改写结构。中心必须是程序本身，例如项目名、主二进制、核心服务名或核心 runtime；左右列可映射输入/上游和输出/下游；底部只展示对运行链路重要的运行时依赖组件。不要强行套服务架构图，CLI、库、插件、monorepo、数据管道和工具项目可以按真实关系映射输入、程序本身、输出和运行时依赖。图中禁止写路径、QA、完整句子、工程支撑和代码边界；`go.mod`、`Makefile`、CI、lint、测试、dev scripts、generated/third-party 边界不要进入 HTML 架构图。
-- 核心业务：按 `.ai/project-context.md` “9. 关键业务流程”逐条渲染。每条流程必须有独立 `<h3>`、业务意图、脚本生成的 Mermaid `sequenceDiagram` 和阶段说明表。参与方只允许外部触发源、本系统整体、直接外部下游或承载业务语义的消息/锁等中间件；内部类、Controller、Service、Task、Cache、Util、Manager、DB、配置中心和监控系统不要作为 Mermaid 参与方，相关细节折叠为本系统动作或阶段表说明。
+- 核心业务：按 `.ai/project-context.md` “9. 关键业务流程”逐条渲染。每条流程必须有独立 `<h3>`、业务意图、脚本生成的 Mermaid `sequenceDiagram` 和轻量阶段卡片。参与方只允许外部触发源、本系统整体、直接外部下游或承载业务语义的消息/锁等中间件；内部类、Controller、Service、Task、Cache、Util、Manager、DB、配置中心和监控系统不要作为 Mermaid 参与方，相关细节折叠为本系统动作或阶段说明。
 - 核心数据模型与状态机：基于 `.ai/project-context.md` “8. 核心数据与状态模型”生成 `data_domains`、`data_entities`、`data_relations`、`state_machine`，由脚本渲染为 Mermaid `flowchart TB` ER 图和 Mermaid `stateDiagram-v2` 状态机图。状态名优先保留中文名、枚举名和数值，展示为 `中文名(ENUM_NAME=数值)`；没有状态机时明确写“未发现：状态机”。最终 HTML 不展示证据、路径、QA 索引或内部来源。
 - 安全相关：基于 `.ai/project-context.md` “10. 安全防控”生成 `security_controls`、`crypto_scenarios`、`security_concerns`，由脚本渲染为业务安全表、加密相关场景表和安全关注点。业务安全表只展示防控点、防什么、怎么防、失败结果；加密相关只展示场景、保护对象、加密/签名/脱敏手段、凭据托管概念级位置和失败结果；安全关注点用 `callout.warn`。最终 HTML 不展示证据、路径、QA 索引、具体凭据变量名、密钥值、算法参数明细、完整标准对照或审计打分。
 - 上下游和服务依赖：脚本从 `dependency_links` 和 `external_dependencies` 生成 Mermaid `flowchart TB` 链路图；箭头标注方向、协议/方式和认证方式。不要把工程支撑依赖写成业务外部依赖。
@@ -331,8 +331,8 @@ HTML 固定章节：
 - 允许按项目事实增删内容块、调整组件和局部样式，但这些结构和样式变化应落到模板文件；不要改成营销页、对外汇报页或无依据的信息图。
 - `frontend-design` 和 `ui-ux-pro-max` 可以用于检查可读性、响应式、信息层级和无障碍细节；如果本地不存在这些参考，继续按当前 HTML 模板和脚本生成，不安装、不阻塞。
 - 页面应服务阅读和查阅，不做营销落地页。避免空泛 hero、装饰性堆叠卡片、过度渐变和无信息量图形。
-- 可以使用单文件 HTML，内联 CSS 和少量原生 JavaScript。业务时序、数据模型、状态机和依赖链路使用固定版本 `mermaid@10.9.6`；Mermaid 源必须由脚本从结构化 JSON 生成，脚本负责字符清理和关键字规避，AI 不直接手写 Mermaid。
-- 样式应保证移动端和桌面端都可读，正文宽度受控，表格可横向滚动，长路径和命令不溢出。
+- 可以使用单文件 HTML，内联 CSS 和少量原生 JavaScript。业务时序、数据模型、状态机和依赖链路使用固定版本 `mermaid@10.9.6`；Mermaid 源必须由脚本从结构化 JSON 生成，脚本负责字符清理和关键字规避，AI 不直接手写 Mermaid。脚本还必须从同一份结构化 JSON 生成图的无障碍短摘要；Mermaid 加载失败时保留图源和 fallback 提示。
+- 样式应保证移动端和桌面端都可读，正文宽度受控，表格和宽图都可横向滚动，长路径和命令不溢出。
 - 如果生成图示，优先用 HTML/CSS 或内联 SVG 表达真实架构关系；不要为了美观编造不存在的模块或流程。
 
 脚本自检：

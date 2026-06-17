@@ -128,6 +128,18 @@
       left: 16px;
     }
 
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
     .topbar {
       position: fixed;
       top: 0;
@@ -577,86 +589,36 @@
       font-size: 0.82rem;
     }
 
-    .sequence-flow {
+    .stage-grid {
       display: grid;
-      gap: 0.55rem;
-      margin: 1rem 0;
-      padding-left: 0;
-      list-style: none;
-      counter-reset: sequence-step;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.75rem;
+      margin-top: 1rem;
     }
 
-    .sequence-flow li {
-      display: grid;
-      grid-template-columns: 2rem minmax(0, 1fr);
-      gap: 0.65rem;
-      align-items: start;
-      counter-increment: sequence-step;
-    }
-
-    .sequence-flow li::before {
-      content: counter(sequence-step);
-      display: grid;
-      width: 1.75rem;
-      height: 1.75rem;
-      place-items: center;
-      border-radius: 999px;
-      background: var(--nav);
-      color: var(--theme);
-      font-family: var(--mono);
-      font-size: 0.72rem;
-      font-weight: 800;
-    }
-
-    .model-blocks {
-      display: grid;
-      gap: 1.25rem;
-    }
-
-    .model-domain-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0.85rem;
-      margin-top: 0.95rem;
-    }
-
-    .model-domain {
+    .stage-card {
       min-width: 0;
-      padding: 0.9rem;
+      padding: 0.85rem;
       border: 1px solid var(--line);
       border-radius: 6px;
       background: var(--paper-warm);
     }
 
-    .model-domain h3 {
-      margin: 0;
-      font-size: 0.98rem;
+    .stage-card h4 {
+      margin: 0 0 0.55rem;
+      font-size: 0.95rem;
     }
 
-    .model-domain p {
-      margin: 0.45rem 0 0;
-      color: var(--muted);
-      line-height: 1.6;
-    }
-
-    .model-domain ul {
-      display: flex;
-      flex-wrap: wrap;
+    .stage-meta {
+      display: grid;
       gap: 0.42rem;
-      margin: 0.7rem 0 0;
-      padding: 0;
-      list-style: none;
+      margin: 0;
+      font-size: 0.86rem;
     }
 
-    .model-domain li {
-      padding: 0.2rem 0.5rem;
-      border: 1px solid var(--line);
-      border-radius: 4px;
-      background: var(--paper);
-      color: var(--theme);
-      font-family: var(--mono);
-      font-size: 0.72rem;
-      font-weight: 700;
+    .model-blocks {
+      display: grid;
+      gap: 1.25rem;
     }
 
     .model-meta {
@@ -667,68 +629,23 @@
       font-size: 0.82rem;
     }
 
+    .stage-meta div,
     .model-meta div {
       display: grid;
       grid-template-columns: 4.5rem minmax(0, 1fr);
       gap: 0.5rem;
     }
 
+    .stage-meta dt,
     .model-meta dt {
       color: var(--ink);
       font-weight: 700;
     }
 
+    .stage-meta dd,
     .model-meta dd {
       margin: 0;
-    }
-
-    .state-flow {
-      display: grid;
-      gap: 0.6rem;
-      margin: 0.95rem 0 1rem;
-      padding: 0;
-      list-style: none;
-    }
-
-    .state-flow li {
-      display: grid;
-      grid-template-columns: minmax(8rem, 1fr) 5.2rem minmax(8rem, 1fr);
-      gap: 0.65rem;
-      align-items: center;
-      padding: 0.75rem;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      background: var(--paper-warm);
-      text-align: center;
-    }
-
-    .state-flow span {
-      color: var(--theme);
-      font-family: var(--mono);
-      font-size: 0.76rem;
-      font-weight: 800;
-    }
-
-    .state-flow span::before,
-    .state-flow span::after {
-      content: "";
-      display: inline-block;
-      width: 0.55rem;
-      height: 1px;
-      margin: 0 0.35rem 0.18rem;
-      background: var(--line-strong);
-    }
-
-    .state-flow strong {
-      min-width: 0;
-      overflow-wrap: anywhere;
-    }
-
-    .state-flow em {
-      grid-column: 1 / -1;
       color: var(--muted);
-      font-size: 0.8rem;
-      font-style: normal;
     }
 
     .panel p:last-child,
@@ -816,13 +733,35 @@
     .diagram-body {
       padding: 0;
       background: var(--paper);
+      overflow-x: auto;
+      overscroll-behavior-inline: contain;
     }
 
     .diagram pre {
+      min-width: max-content;
       margin: 0;
       border: 0;
       border-radius: 0;
       background: var(--paper);
+    }
+
+    .diagram svg {
+      display: block;
+      min-width: 720px;
+      max-width: none;
+      margin: 0 auto;
+    }
+
+    .mermaid-fallback {
+      margin: 0;
+      padding: 0.7rem 0.85rem;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .diagram .mermaid[data-processed="true"] + .mermaid-fallback {
+      display: none;
     }
 
     .flow {
@@ -1171,11 +1110,7 @@
       .arch-mid,
       .arch-engine-grid,
       .arch-svc-row,
-      .model-domain-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .state-flow li {
+      .stage-grid {
         grid-template-columns: 1fr;
       }
 
@@ -1407,7 +1342,7 @@
             <div>
               <p class="summary">{{BUSINESS_SUMMARY}}</p>
             </div>
-            <span class="badge inferred">{{BUSINESS_CONFIDENCE}}</span>
+            <span class="badge {{BUSINESS_CONFIDENCE_CLASS}}">{{BUSINESS_CONFIDENCE}}</span>
           </div>
           {{BUSINESS_FLOWS_HTML}}
         </section>
@@ -1421,7 +1356,7 @@
             <div>
               <p class="summary">{{MODEL_SUMMARY}}</p>
             </div>
-            <span class="badge open">{{STATE_MACHINE_STATUS}}</span>
+            <span class="badge {{STATE_MACHINE_STATUS_CLASS}}">{{STATE_MACHINE_STATUS}}</span>
           </div>
           {{MODEL_HTML}}
         </section>
@@ -1435,7 +1370,7 @@
             <div>
               <p class="summary">{{SECURITY_SUMMARY}}</p>
             </div>
-            <span class="badge risk">{{SECURITY_STATUS}}</span>
+            <span class="badge {{SECURITY_STATUS_CLASS}}">{{SECURITY_STATUS}}</span>
           </div>
           {{SECURITY_HTML}}
         </section>
@@ -1525,9 +1460,10 @@
     </main>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.6/dist/mermaid.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.6/dist/mermaid.min.js" onerror="document.documentElement.classList.add('mermaid-unavailable')"></script>
   <script>
     if (window.mermaid) {
+      document.documentElement.classList.add("mermaid-available");
       mermaid.initialize({
         startOnLoad: true,
         theme: "base",
@@ -1550,6 +1486,8 @@
           fontFamily: "LXGW WenKai Screen, PingFang SC, Hiragino Sans GB, Microsoft YaHei UI, Microsoft YaHei, sans-serif"
         }
       });
+    } else {
+      document.documentElement.classList.add("mermaid-unavailable");
     }
 
     const links = Array.from(document.querySelectorAll(".nav-list a"));
