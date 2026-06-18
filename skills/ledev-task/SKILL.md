@@ -1,0 +1,99 @@
+---
+name: ledev-task
+description: 面向中文用户。用于把代码开发、bug 修复、重构、小型工具生成和实现相关文档变更统一纳入编号 task 工作流。Use when Codex needs to create, continue, restart, view, implement, fix, or close typed development tasks before modifying project code, configs, tests, scripts, docs tied to implementation, or diagnosing bugs that may require code changes. 产物包括 .ai/tasks/ 下的 T### task 文件、.ai/tasks/index.md 状态索引和 .ai/state/ledev-task.md 运行状态；验证阶段可读取或交接给 ledev-test，但不替代独立测试治理。
+---
+
+# LEDev Task
+
+## 目的
+
+把每一次开发、修复和相关验证都绑定到可追踪 task，避免在没有上下文、需求确认、范围判断和验证记录的情况下直接改代码。
+
+`ledev-task` 是开发和 bug 修复统一入口。`ledev-test` 暂时保持独立；本 skill 只规定任务内必须完成验证记录，复杂测试治理可交接给 `ledev-test`。
+
+## 读取 Reference
+
+- task 字段、编号、索引和状态文件规则：读 `references/task-files.md`。
+- 新建、继续、重启、查看、收尾等操作细节：读 `references/workflow.md`。
+- 写文件时使用模板：
+  - `templates/task-template.md`
+  - `templates/task-index-template.md`
+  - `templates/ledev-task-state-template.md`
+
+## 中文优先规则
+
+- 面向中文用户时，对话说明、task 内容、方案记录、验证结论都以中文为主。
+- 命令、路径、状态值、代码符号、测试名称和短确认 token 可以保留英文。
+- 需要用户输入短确认时使用英文 token，例如 `yes/no`、`continue/stop`、`confirm/edit`。
+
+## 操作语义
+
+把 skill 名称后的第一个词视为操作名。操作名大小写不敏感；中文和英文都支持。
+
+- `default`：说明当前可用操作；不扫描、不写文件。
+- `new` / `新建`：为新的开发、修复、重构或工具生成工作创建 task。
+- `continue` / `继续`：读取现有 task，从上次阶段继续。
+- `restart` / `重启`：需求不变但上一阶段实现或方案不适用时，保留历史并重启当前 task。
+- `view` / `查看`：查看 task 总数、状态分布、当前进行中 task、阻塞 task 和最近完成 task。
+- `close` / `完成`：实现和验证结束后收尾，标记 task 为 `done`。
+- `block` / `阻塞`：缺少用户决策、权限、依赖或外部条件时，标记 task 为 `blocked`。
+
+示例：
+
+- `$ledev-task`
+- `$ledev-task new 实现导出 CSV`
+- `$ledev-task continue T003`
+- `$ledev-task restart T003`
+- `$ledev-task view`
+- `$ledev-task close T003`
+
+## 硬性规则
+
+### 写入边界
+
+- `.ai/tasks/` 和 `.ai/state/ledev-task.md` 是目标项目的运行产物，只在被开发、修复或验证的目标项目中创建。
+- 当目标项目就是 `ledev-workflows` 这类 workflow/skill 仓库本身，或用户明确不希望落盘时，不创建目标项目 `.ai/`。用对话说明当前 task 语义、改动范围、验证结果，并依赖 git diff 保留变更证据。
+- 如果不确定当前仓库是业务目标项目还是 workflow/skill 仓库，先根据目录结构和用户诉求判断；仍不确定时向用户确认再写 `.ai/`。
+
+### 代码改动前
+
+- 任何代码、配置、测试、脚本或实现相关文档改动前，必须确认当前改动属于某个 `T###` task；没有则先创建。
+- 创建或继续 task 前，必须先检查目标项目是否在 git 工作树中，并读取 `git status --short`，识别用户已有改动。
+- 实现前必须观察代码架构和相关上下文。至少确认项目结构、技术栈、相关模块、相似实现、命令入口、测试方式和风险边界。
+- 如果目标项目存在 `.ai/project-context.md`、`.ai/facts/` 或 `.ai/state/ledev-context.md`，必须优先读取。缺失、明显过期或任务影响面较大时，先运行或建议运行 `ledev-context`。
+- 不允许把需求不清、影响面不明、方案取舍未定的工作直接推进到实现。先把疑问写入 task，并向用户确认。
+
+### task 记录
+
+- task 编号使用 `T###`，从 `T001` 开始递增，不复用已删除或废弃编号。
+- 允许写入目标项目 `.ai/` 时，task 文件写入 `.ai/tasks/T###-短标题.md`；索引写入 `.ai/tasks/index.md`；运行状态写入 `.ai/state/ledev-task.md`。
+- 每个 task 必须记录类型、用户原始诉求、需求确认、范围、影响面、方案决策、实现记录、验证结果、剩余风险和历史事件。
+- 每个 task 必须有 `Type`。优先使用 `feature`（开发）或 `bugfix`（修复 bug）；其他常见类型见 `references/task-files.md`。
+- `restart` 不应删除历史。追加重启事件，说明为什么上一阶段不适用、保留哪些产物、废弃哪些假设。
+- `.ai/tasks/index.md` 是状态汇总，不替代单个 task 详情。更新 task 状态后同步更新索引。
+
+### 实现与修复
+
+- 开发和 bug 修复都走同一 task 工作流。
+- bug 修复必须先记录复现方式、现象、初始假设和根因解释；无法复现时记录已尝试的证据和当前判断。
+- 实现必须匹配仓库既有模式，优先复用现有 helper、命名、错误处理、配置和测试风格。
+- 改动保持窄范围。不要顺手重构无关代码，不要覆盖用户已有改动。
+- 手动编辑文件优先使用 `apply_patch`。
+
+### 验证与收尾
+
+- 每个 task 收尾前必须记录验证：命令、结果、失败原因或未验证原因。
+- 低风险任务可运行聚焦验证；跨模块、共享契约或修复 bug 时，优先补充或运行回归测试。
+- 测试策略复杂、用户明确要求测试治理，或需要独立验证阶段时，交接给 `ledev-test`，但 task 内仍要记录交接和结果。
+- 只有实现、验证和收尾记录完整后，才把 task 标记为 `done`。
+- 如果验证被权限、依赖、网络、外部服务或环境阻塞，记录具体命令和阻塞原因，状态设为 `blocked` 或保留为 `in_progress` 并说明风险。
+
+## 默认输出
+
+完成一次操作后报告：
+
+- 当前 task 编号和状态。
+- 本次完成的阶段和写入的 task 文件。
+- 代码或文档变更摘要。
+- 验证命令和结果。
+- 剩余风险、阻塞项或建议下一步。

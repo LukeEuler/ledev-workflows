@@ -12,6 +12,8 @@ legacy_names=(
   dev-context
   dev-fix
   dev-impl
+  ledev-fix
+  ledev-impl
   dev-review
   dev-test
   dev-tool

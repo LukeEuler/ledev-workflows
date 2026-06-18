@@ -10,7 +10,7 @@
 
 除 `default` 外，每次运行先做 git 工作树检查：
 
-除非用户特别说明，所有 skill 在目标项目中产生的文件都必须限定在目标项目的 `.ai/` 目录下。运行进度统一写入目标项目 `.ai/state/`，并按 skill 分文件，例如 `.ai/state/ledev-context.md`、`.ai/state/ledev-impl.md`。不要在目标项目根目录创建独立的 `state/` 目录。
+除非用户特别说明，所有 skill 在目标项目中产生的文件都必须限定在目标项目的 `.ai/` 目录下。运行进度统一写入目标项目 `.ai/state/`，并按 skill 分文件，例如 `.ai/state/ledev-context.md`、`.ai/state/ledev-task.md`。不要在目标项目根目录创建独立的 `state/` 目录。
 
 - 优先运行 `git rev-parse --is-inside-work-tree` 判断目标路径是否在 git 项目内。
 - 如果是 git 项目且允许写文件，读取或创建目标项目根目录的 `.gitignore`，确保包含 `.ai/drafts/`。
@@ -66,7 +66,7 @@
 ## 阶段锚点
 
 - 在 `.ai/state/ledev-context.md` 维护 `ledev-context` 的 phase anchor。
-- `.ai/state/` 是运行进度目录，不属于 `.ai/` 项目知识库；不同 skill 必须使用不同文件，例如 `.ai/state/ledev-impl.md`、`.ai/state/ledev-test.md`。
+- `.ai/state/` 是运行进度目录，不属于 `.ai/` 项目知识库；不同 skill 必须使用不同文件，例如 `.ai/state/ledev-task.md`、`.ai/state/ledev-test.md`。
 - 锚点记录“最后完整完成的阶段”，不是当前正在执行的阶段。
 - 合法顺序：`none -> scope -> scan -> summarize -> qa -> md -> html -> document -> maintain`。`rollback` 是恢复动作，不属于阶段锚点顺序。
 - 向后推进锚点必须按顺序，并且只能在阶段完成后推进。
@@ -419,7 +419,7 @@ AI 工作上下文：
 运行进度状态：
 
 - `.ai/state/ledev-context.md`
-- `.ai/state/<skill-name>.md` for each other skill, for example `.ai/state/ledev-impl.md` or `.ai/state/ledev-test.md`
+- `.ai/state/<skill-name>.md` for each other skill, for example `.ai/state/ledev-task.md` or `.ai/state/ledev-test.md`
 
 长期 QA：
 

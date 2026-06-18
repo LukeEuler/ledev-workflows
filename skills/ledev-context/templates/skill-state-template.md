@@ -1,6 +1,6 @@
 # Skill State 模板
 
-当某个 skill 需要记录运行进度时，使用这个结构写入 `.ai/state/<skill-name>.md`，例如 `.ai/state/ledev-impl.md`、`.ai/state/ledev-test.md`。正文以中文为主；命令、路径、状态值可保留英文。不同 skill 的进度必须分文件记录，不要写入同一个共享状态文件。
+当某个 skill 需要记录运行进度时，使用这个结构写入 `.ai/state/<skill-name>.md`，例如 `.ai/state/ledev-task.md`、`.ai/state/ledev-test.md`。正文以中文为主；命令、路径、状态值可保留英文。不同 skill 的进度必须分文件记录，不要写入同一个共享状态文件。
 
 ## 当前目标
 
