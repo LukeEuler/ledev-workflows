@@ -7,6 +7,7 @@
 
 - 目标路径：
 - Primary repo：
+- 路径策略：长期产物使用相对路径；本机绝对路径只允许写入 `.ai/drafts/local-paths.md`
 - 创建时间：
 - 最后确认时间：
 - 创建者：
@@ -28,7 +29,7 @@
 ## 多仓库覆盖
 
 - Primary repo name：
-- Primary repo path：
+- Primary repo path：`.` 或相对当前工作目录的可移植路径
 - Context output location：`.ai/` in primary repo
 - 默认写入策略：Primary repo writable；Related repos read-only
 
@@ -46,6 +47,7 @@
 - Token 风险：
 - 准确度风险：
 - 多仓版本风险：
+- 本机绝对路径映射：not-recorded | `.ai/drafts/local-paths.md`
 
 ## Scope 确认问题
 

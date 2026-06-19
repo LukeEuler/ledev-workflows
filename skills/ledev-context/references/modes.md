@@ -19,6 +19,13 @@
 - 如果用户要求 dry-run/no-write，只报告需要加入 `.ai/drafts/`，不修改 `.gitignore`。
 - 如果不是 git 项目，不创建 `.gitignore`，只继续当前模式。
 
+路径可移植性：
+
+- `.ai/scope/`、`.ai/facts/`、`.ai/qa/`、`.ai/project-context.md`、`.ai/project-context.html` 和人类文档中禁止写本机绝对路径。
+- 主仓库文件路径使用相对 `Primary repo` 根目录的路径，例如 `cmd/server/main.go`。
+- 关联仓库路径使用相对 `Primary repo` 的仓库路径加仓库内路径，例如 `../funnel:internal/log/parser.go`；也可使用稳定别名格式 `related:funnel:internal/log/parser.go`。
+- 本机绝对路径只允许写入 `.ai/drafts/local-paths.md` 或 `.ai/drafts/` 下临时文件，用于本轮路径映射、恢复或调试；任何正式产物生成前都必须改写为可移植路径。
+
 可重复执行：
 
 - `scope`、`scan`、`summarize`、`qa` 可以安全重复执行。
@@ -59,6 +66,7 @@
   - `.ai/drafts/project-scan.md`
   - `.ai/drafts/project-context-draft.md`
   - `.ai/drafts/project-context-html-data.json`
+  - `.ai/drafts/local-paths.md`
 - 长期 QA 文件：
   - `.ai/qa/project-qa.md`
 - `md` 应读取事实层、草稿和长期 QA，把已验证摘要提升到 `.ai/project-context.md` 或 Markdown 人类文档。`html` 应读取事实层、长期 QA 和 `.ai/project-context.md`，把信息重新编排为 `.ai/project-context.html`。
@@ -115,6 +123,7 @@
 包括：
 
 - 目标路径。
+- 路径展示策略：长期产物只使用可移植相对路径；本机绝对路径如需记录，写入 `.ai/drafts/local-paths.md`。
 - 仓库类型判断：single-project、monorepo 或 unknown。
 - 多仓库形态判断：是否存在 `Primary repo` 和 `Related repos`，以及每个关联仓库的角色、扫描深度、写入策略和版本关系。
 - 主要语言候选和需要加载的语言规则。
@@ -142,6 +151,7 @@ scope 已写入并得到确认，或用户明确要求按当前 scope 继续时�
 
 - 完整文件清单、目录结构和扫描排除范围。
 - Primary repo 和每个 Related repo 的仓库身份、扫描范围、git 状态、声明版本、实际解析来源、本地 checkout 和版本一致性。
+- 路径证据必须标准化为可移植路径；如果发现命令输出包含本机绝对路径，写入事实层前要改写为相对路径或仓库别名路径。
 - 语言、包管理器、模块文件、构建文件、CI 文件。
 - README、docs、scripts 和命令说明。
 - generated、vendor、third-party、legacy 或高风险区域。
@@ -154,6 +164,7 @@ scope 已写入并得到确认，或用户明确要求按当前 scope 继续时�
 
 - `.ai/facts/` 下的结构化事实文件。
 - 多仓库上下文写入 `.ai/facts/related-repos.md`，并在 `manifest.md`、`dependencies.md`、`boundaries.md` 和 `evidence-index.md` 引用。
+- 如需保留本机绝对路径映射，写入 `.ai/drafts/local-paths.md`，不要写入事实层。
 - 未扫描或无法读取内容的原因。
 - 事实缺口和可能进入 QA 的问题。
 
@@ -223,6 +234,8 @@ scope 已写入并得到确认，或用户明确要求按当前 scope 继续时�
 写入前说明目标文件并确认，除非用户已经明确要求写入。
 
 只把事实层中有证据、或长期 QA 中已人工确认的内容提升到正式文档。人类文档应写稳定知识，不写临时 dirty 状态或未经确认的 AI 推断。
+
+提升到 Markdown 或人类文档前必须检查路径可移植性：删除或改写本机绝对路径；关联仓库路径保留为相对 `Primary repo` 的路径或 `related:<name>:<path>` 别名。
 
 内容分层要求：
 

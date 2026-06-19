@@ -7,6 +7,7 @@
 - 目标项目：
 - Primary repo：
 - Related repo：
+- 路径策略：repo-relative | related-repo-relative；禁止本机绝对路径
 - 文件类型：manifest | repo-structure | code-inventory | architecture-facts | commands | dependencies | tests | boundaries | related-repos | evidence-index
 - 扫描时间：
 - 创建者：
@@ -31,6 +32,7 @@
 - 事实编号：
 - 证据来源：
 - 证据类型：file | symbol | command | config | test | ci | docs | human
+- 路径格式：primary-relative | related:<repo>:path | primary-relative-related-repo | no-path
 
 ## 缺口
 

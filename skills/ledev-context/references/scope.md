@@ -9,6 +9,7 @@
 它只回答：
 
 - 应该扫描哪个目标路径？
+- 长期产物中如何用可移植相对路径表示目标路径和关联仓库路径？
 - 这是单项目还是 monorepo？
 - 是否存在 Primary repo + Related repos 的多仓库上下文？
 - 关联仓库是实际解析依赖、上游/下游服务、协议来源、参考实现，还是只读补充资料？
@@ -33,6 +34,8 @@
 
 多仓库上下文仍只在 `Primary repo` 写入本文件。`Related repos` 的路径、角色、扫描深度、写入策略和版本关系都记录在主仓库的 `.ai/scope/scan-scope.md` 中。
 
+`scan-scope.md` 是长期可复用产物，不应写本机绝对路径。目标路径、关联仓库路径和证据路径都使用相对 `Primary repo` 的路径或稳定仓库别名；本机绝对路径如需保留，只能写入 `.ai/drafts/local-paths.md`。
+
 ## 多仓库范围
 
 多仓库 scope 必须区分：
@@ -51,6 +54,8 @@
 - `resolved_source`：实际构建会解析到的来源，例如 module cache、vendor、`replace`、`go.work`、workspace、本地路径、远端版本；无法确认则写 `未确认`
 - `local_checkout`：本地关联仓库当前 branch、commit、tag 或 dirty 状态；无法读取则写原因
 - `version_match`：`match` | `mismatch` | `not-applicable` | `unknown`
+
+`local_path` 使用相对 `Primary repo` 的路径，例如 `../funnel`、`vendor/funnel` 或 `third_party/funnel`；不要写 `/Users/...`、`/home/...`、`C:\...` 这类本机绝对路径。
 
 如果 `declared_version`、`resolved_source` 和 `local_checkout` 不一致，不要自动把本地 checkout 当作实际依赖代码。应把版本不一致写入 scope 的准确度风险，并在 scan/facts 中保留三者差异。
 

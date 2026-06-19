@@ -45,6 +45,7 @@ description: 面向中文用户。用于在开发、review、bugfix、测试或�
 - 直接修 bug
 - 大范围重构
 - 把大段源码复制进文档
+- 把本机绝对路径写入长期产物，例如 `.ai/scope/`、`.ai/facts/`、`.ai/qa/`、`.ai/project-context.md`、`.ai/project-context.html` 或人类文档。
 - 在事实层做业务推理或意图猜测
 - 把不确定推断写成确认事实
 - 在没有证据的情况下写“核心”“主要”“推荐”等判断
@@ -149,6 +150,8 @@ description: 面向中文用户。用于在开发、review、bugfix、测试或�
 - 最终上下文和文档必须以事实为主，明确区分 Confirmed Facts 和 Inferred Assumptions。
 - 事实层只记录可观察事实和证据，不写业务推理、价值判断或未经验证的架构解释。
 - 每条重要事实必须有证据来源，优先使用文件路径、符号名、命令输出或配置项；能定位行号时写行号。
+- 长期产物中的路径必须使用可移植路径：主仓库内使用相对 `Primary repo` 根目录的路径；关联仓库使用相对 `Primary repo` 的相对路径加仓库内路径，例如 `../funnel:cmd/server/main.go` 或 `related:funnel:cmd/server/main.go`。不要写 `/Users/...`、`/home/...`、`C:\...` 这类本机绝对路径。
+- 如果确实需要记录本机绝对路径用于本轮恢复、调试或路径映射，只能写入 `.ai/drafts/local-paths.md` 或 `.ai/drafts/` 下其他临时文件；提升到正式上下文、事实层、人类文档或 HTML 前必须改写为可移植路径。
 - dirty files 默认视为用户改动，除非明确是当前任务创建的。
 - 运行脚本产生的解释器缓存或工具缓存如果已被 git ignore 覆盖，例如 `__pycache__/`、`*.py[cod]`，不要主动查询或清理；只处理会进入 `git status`、影响事实层或影响正式产物的文件。
 

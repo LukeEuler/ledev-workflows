@@ -56,6 +56,8 @@
 - 明确记录扫描范围和排除范围。
 - 多仓库扫描时，分别记录每个仓库的扫描范围、排除范围、git 状态、版本信息和未扫描原因。
 - 对 `Related repos` 默认只读扫描；不要在关联仓库写 `.ai/` 事实文件。
+- 写入事实层前必须把路径标准化为可移植路径：主仓库内路径相对 `Primary repo` 根目录；关联仓库路径相对 `Primary repo`，或写成 `related:<repo-name>:<repo-relative-path>`。
+- 本机绝对路径只能进入 `.ai/drafts/local-paths.md` 这类临时映射文件，不进入 `.ai/facts/`。
 - 观察所有源码目录、配置文件、脚本、CI、README、docs、测试文件。
 - 对大型 generated/vendor/third-party 目录可以只记录目录、规模和来源，不逐文件深入。
 - 对二进制、大文件或不可读文件，记录路径和未读取原因。
@@ -88,7 +90,26 @@
 - 命令事实：写来源文件和命令文本。
 - 架构关系：写产生关系的 import、调用、路由注册、配置引用或脚本引用。
 - 人工确认：写 QA 编号或 Human Notes 来源。
-- 多仓库事实：写 `repo:path` 或绝对/相对路径，并标明该证据来自 `Primary repo` 还是某个 `Related repo`。
+- 多仓库事实：写 `related:<repo-name>:<repo-relative-path>` 或相对 `Primary repo` 的路径，例如 `../funnel:internal/log/parser.go`，并标明该证据来自 `Primary repo` 还是某个 `Related repo`。
+
+## 路径可移植性
+
+长期事实层禁止写本机绝对路径。常见禁止示例包括：
+
+- `/Users/name/project/...`
+- `/home/name/project/...`
+- `C:\Users\name\project\...`
+- `/private/tmp/...`
+
+允许写入：
+
+- `cmd/server/main.go`
+- `internal/foo/bar.go:42`
+- `../funnel:pkg/log/event.go`
+- `related:funnel:pkg/log/event.go`
+- `module-cache:github.com/org/pkg@v1.2.3/file.go`，仅当事实来自不可避免的 module cache，并且不记录本机 cache 根目录。
+
+如果命令输出只提供绝对路径，应在记录事实时转换为相对路径；无法可靠转换时，把原始输出放入 `.ai/drafts/local-paths.md`，事实层写“路径无法稳定相对化，详见临时草稿”。
 
 ## 版本关系事实
 
