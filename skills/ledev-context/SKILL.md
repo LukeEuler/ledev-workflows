@@ -141,7 +141,8 @@ description: 面向中文用户。用于在开发、review、bugfix、测试或�
 - 分阶段工作时，在 `.ai/state/ledev-context.md` 维护 `ledev-context` 自己的阶段锚点。其他 skill 必须写各自的 `.ai/state/<skill-name>.md`，不要共用一个状态文件。
 - 不允许跳过未完成阶段向后推进锚点。
 - 显式重复执行当前锚点之前的阶段时，执行成功后必须把 `.ai/state/ledev-context.md` 的锚点前置到本次完成阶段，并把依赖后续产物标记为 stale；不要继续保留较新的锚点。
-- 每个非 `default` 模式完成后，都要报告本次完成的阶段、当前锚点、受影响产物，并给出推荐下一步命令。推荐下一步不能替代用户下一次显式输入。
+- 每个非 `default` 模式完成后，都要报告本次完成的阶段、当前锚点、受影响产物，并给出推荐下一步命令。每条推荐命令后必须附一句简短说明，说明它会做什么。推荐下一步不能替代用户下一次显式输入。
+- 当推荐 `$ledev-context md` 时，必须同时提示 `$ledev-context document`：`md` 只生成或刷新 Markdown 上下文，`document` 会组合执行 Markdown 和 HTML 文档生成。
 
 ### 事实与推断
 

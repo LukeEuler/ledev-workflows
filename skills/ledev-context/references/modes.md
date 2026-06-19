@@ -29,7 +29,8 @@
 显式模式优先：
 
 - 用户显式执行某个模式时，本次运行必须以该模式为目标；不要因为 `.ai/state/ledev-context.md` 已经记录了后续锚点，就跳过用户指定阶段、改成执行下一阶段，或只做“当前锚点之后”的工作。
-- 推荐下一步只是本次完成后的提示，不是自动续跑授权。用户没有执行下一步时，后续重复执行当前阶段或执行更早阶段都必须按用户命令处理。
+- 推荐下一步只是本次完成后的提示，不是自动续跑授权。每条推荐命令后必须附一句简短说明，说明它会做什么。用户没有执行下一步时，后续重复执行当前阶段或执行更早阶段都必须按用户命令处理。
+- 当推荐 `$ledev-context md` 时，必须同时提示 `$ledev-context document`：`md` 只生成或刷新 Markdown 上下文，`document` 会组合执行 Markdown 和 HTML 文档生成。
 - 如果用户显式执行前序阶段，例如当前锚点是 `html` 但用户执行 `scan`，完成后必须把锚点前置到 `scan`，并把 `summarize`、`qa`、`md`、`html`、`document` 等依赖后续产物标记为 stale 或在输出中明确说明需要重建。
 - 如果用户显式重复执行当前锚点阶段，完成后锚点仍停留在该阶段；只标记依赖它的后续产物 stale。
 
@@ -81,20 +82,21 @@
 
 | 完成阶段 | 当前锚点应设为 | 必须标记 stale 或提示重建的后续产物 | 推荐下一步 |
 | --- | --- | --- | --- |
-| scope | scope | `.ai/facts/`、`.ai/drafts/project-context-draft.md`、`.ai/project-context.md`、`.ai/project-context.html`、人类文档 | `$ledev-context scan` |
-| scan | scan | `.ai/drafts/project-context-draft.md`、`.ai/project-context.md`、`.ai/project-context.html`、人类文档 | `$ledev-context summarize` |
-| summarize | summarize | `.ai/project-context.md`、`.ai/project-context.html`、人类文档 | `$ledev-context qa` 或 `$ledev-context md` |
-| qa | qa | `.ai/project-context.md`、`.ai/project-context.html`、人类文档 | `$ledev-context md` |
-| md | md | `.ai/project-context.html`、HTML 人类文档 | `$ledev-context html` |
-| html | html | `document` 阶段状态 | `$ledev-context document` 或结束 |
-| document | document | 无，除非用户后续回到前序阶段 | 结束或 `$ledev-context maintain` |
+| scope | scope | `.ai/facts/`、`.ai/drafts/project-context-draft.md`、`.ai/project-context.md`、`.ai/project-context.html`、人类文档 | `$ledev-context scan`：按已确认范围采集结构化事实。 |
+| scan | scan | `.ai/drafts/project-context-draft.md`、`.ai/project-context.md`、`.ai/project-context.html`、人类文档 | `$ledev-context summarize`：基于事实层生成上下文草稿。 |
+| summarize | summarize | `.ai/project-context.md`、`.ai/project-context.html`、人类文档 | `$ledev-context qa`：补齐代码无法确认的问题；或 `$ledev-context md`：生成 Markdown 上下文；也可用 `$ledev-context document`：一次生成 Markdown 和 HTML 文档。 |
+| qa | qa | `.ai/project-context.md`、`.ai/project-context.html`、人类文档 | `$ledev-context md`：生成 Markdown 上下文；也可用 `$ledev-context document`：一次生成 Markdown 和 HTML 文档。 |
+| md | md | `.ai/project-context.html`、HTML 人类文档 | `$ledev-context html`：基于 Markdown 上下文生成 HTML。 |
+| html | html | `document` 阶段状态 | `$ledev-context document`：校验/刷新 Markdown 并生成 HTML；如果不需要组合文档，可以结束。 |
+| document | document | 无，除非用户后续回到前序阶段 | `$ledev-context maintain`：在项目变化或人工纠正后增量维护上下文；没有变化时可以结束。 |
 
 每个非 `default` 模式完成后必须输出：
 
 - 本次完成阶段。
 - 当前锚点。
 - 被标记 stale 或需要重建的后续产物。
-- 推荐下一步命令；如果没有必要下一步，说明可以结束或按需执行 `maintain`。
+- 推荐下一步命令及一句简短用途说明；如果没有必要下一步，说明可以结束或按需执行 `maintain`。
+- 推荐 `$ledev-context md` 时，必须同时列出 `$ledev-context document` 作为组合生成 Markdown 和 HTML 的选择。
 
 ## Default
 
@@ -102,7 +104,7 @@
 
 - 说明可用模式。
 - 说明哪些模式只读，哪些模式可能写文件。
-- 推荐下一步。
+- 推荐下一步，并用一句话说明推荐命令会做什么。
 - 不运行仓库扫描命令。
 - 不创建或修改文件。
 
