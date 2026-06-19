@@ -14,9 +14,13 @@ description: 不可用：该 skill 尚未完成开发和验证，不应被用于
 Read, when present:
 
 - `.ai/project-context.md`
+- `.ai/scope/scan-scope.md`
+- `.ai/facts/related-repos.md`
 - `.ai/state/ledev-test.md`
 - relevant `.ai/state/ledev-*.md` files when validating prior implementation or bugfix work
 - language rules identified by `ledev-context`
+
+If `ledev-context` declares `Primary repo` and `Related repos`, inherit that multi-repo context. Validation selection must use the primary repo's actual resolved dependency versions; related repos are read-only references unless the user explicitly asks for cross-repo validation or modification.
 
 ## 文件布局约定
 

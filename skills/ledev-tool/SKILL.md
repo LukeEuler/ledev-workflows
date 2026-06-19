@@ -14,9 +14,13 @@ description: 不可用：该 skill 尚未完成开发和验证，不应被用于
 Read, when present:
 
 - `.ai/project-context.md`
+- `.ai/scope/scan-scope.md`
+- `.ai/facts/related-repos.md`
 - `.ai/state/ledev-tool.md`
 - relevant `.ai/state/ledev-*.md` files when the tool supports another skill workflow
 - language rules identified by `ledev-context`
+
+If `ledev-context` declares `Primary repo` and `Related repos`, inherit that multi-repo context. Generated tools default to the primary repo write boundary; related repos can provide API/protocol/reference facts but must not be modified unless the user explicitly requests a cross-repo tool.
 
 ## 文件布局约定
 

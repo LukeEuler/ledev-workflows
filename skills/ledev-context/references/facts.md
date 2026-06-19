@@ -11,6 +11,7 @@
 - 仓库中真实存在的文件、目录、模块、包、命令、配置、测试、入口、符号、依赖。
 - 从源码、配置、README、脚本、CI 中可直接观察到的架构事实。
 - 事实之间的可证据化关系，例如“文件 A import 了包 B”“命令 X 出现在 Makefile 中”“路由 Y 在文件 Z 注册”。
+- 多仓库关系事实：Primary repo、Related repos、关联角色、扫描深度、写入策略、声明依赖版本、实际解析来源、本地 checkout、版本是否一致。
 
 不要写：
 
@@ -30,6 +31,7 @@
   dependencies.md
   tests.md
   boundaries.md
+  related-repos.md
   evidence-index.md
 ```
 
@@ -43,6 +45,7 @@
 - `dependencies.md`：依赖文件、内部依赖、外部依赖、服务/存储/网络依赖。
 - `tests.md`：测试文件、测试框架、fixtures、mocks、集成测试、外部依赖。
 - `boundaries.md`：模块边界、不要修改的区域、dirty files、敏感文件。
+- `related-repos.md`：多仓库上下文、关联仓库角色、版本关系、只读/可写边界、跨仓证据索引。
 - `evidence-index.md`：重要事实到证据来源的索引。
 
 可以按项目规模合并或拆分，但必须保留 `.ai/facts/manifest.md` 和 `.ai/facts/evidence-index.md`。
@@ -51,6 +54,8 @@
 
 - 使用 `rg --files` 或等价方式列出全部文件。
 - 明确记录扫描范围和排除范围。
+- 多仓库扫描时，分别记录每个仓库的扫描范围、排除范围、git 状态、版本信息和未扫描原因。
+- 对 `Related repos` 默认只读扫描；不要在关联仓库写 `.ai/` 事实文件。
 - 观察所有源码目录、配置文件、脚本、CI、README、docs、测试文件。
 - 对大型 generated/vendor/third-party 目录可以只记录目录、规模和来源，不逐文件深入。
 - 对二进制、大文件或不可读文件，记录路径和未读取原因。
@@ -83,6 +88,21 @@
 - 命令事实：写来源文件和命令文本。
 - 架构关系：写产生关系的 import、调用、路由注册、配置引用或脚本引用。
 - 人工确认：写 QA 编号或 Human Notes 来源。
+- 多仓库事实：写 `repo:path` 或绝对/相对路径，并标明该证据来自 `Primary repo` 还是某个 `Related repo`。
+
+## 版本关系事实
+
+多仓库分析必须区分三个版本概念：
+
+- `declared_version`：主仓库依赖声明中的版本，例如 `go.mod`、lockfile、配置或文档声明。
+- `resolved_source`：当前构建/测试实际会使用的来源，例如 `replace ../B`、`go.work`、vendor、module cache、workspace 或远端模块版本。
+- `local_checkout`：本地关联仓库当前检出的 branch、tag、commit 和 dirty 状态。
+
+如果 A 声明依赖 B 的 `101`，但本地 B checkout 是 `102`：
+
+- 若没有 `replace`、`go.work`、workspace、vendor 或其他配置把 A 解析到本地 B，则 A 的实际依赖应按 `101` 记录，本地 B `102` 只能作为参考，不能作为 confirmed dependency code。
+- 若 A 的构建配置明确解析到本地 B，则实际分析对象是本地 B 当前 checkout，同时必须记录它和声明版本 `101` 的差异。
+- 如果需要精确分析 `101` 的源码，优先建议用户把 B 切到 `101`，或使用独立 worktree/clone/module cache 读取 `101`，避免污染 B 当前工作树。
 
 ## 架构事实边界
 

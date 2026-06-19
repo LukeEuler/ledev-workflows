@@ -67,6 +67,24 @@ Go 项目画像里建议记录：
 - 核心接口和核心数据结构
 - 成熟参考包或参考插件
 - 外部依赖服务
+- `replace`、`go.work`、workspace、vendor 和 module cache 对依赖解析的影响。
+- 多仓库上下文中的声明 module 版本、实际解析来源和本地关联仓库 checkout。
+
+## Go 多仓库版本规则
+
+Go 项目中不要只凭本地兄弟目录判断实际依赖代码。必须按证据区分：
+
+- `go.mod require` 声明的 module path 和版本。
+- `replace` 是否把 module 指向本地路径或另一个版本。
+- `go.work` 是否把多个本地 module 纳入同一个 workspace。
+- `vendor/` 是否存在且构建命令使用 vendor 模式。
+- 可用时用 `go list -m -json all` 或等价命令确认实际解析版本和替换路径；命令失败时记录失败原因，不臆测。
+
+如果 A 的 `go.mod` 声明 B 为 `v1.0.1`，而本地 `../B` 是 `v1.0.2`：
+
+- 没有 `replace ../B`、`go.work` 或 vendor 证据时，A 的 confirmed dependency version 是 `v1.0.1`；`../B@v1.0.2` 只能作为 related repo reference。
+- 有 `replace ../B` 或 `go.work` 证据时，A 的实际解析来源是本地 `../B` 当前 checkout；同时记录它与声明版本 `v1.0.1` 的不一致。
+- 精确分析 `v1.0.1` 源码时，优先使用独立 worktree/clone 或 module cache，不要求用户破坏当前 `../B` 工作区；如果必须切换当前仓库版本，先向用户确认。
 
 ## 代码规范
 

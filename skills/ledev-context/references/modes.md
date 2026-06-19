@@ -13,6 +13,7 @@
 除非用户特别说明，所有 skill 在目标项目中产生的文件都必须限定在目标项目的 `.ai/` 目录下。运行进度统一写入目标项目 `.ai/state/`，并按 skill 分文件，例如 `.ai/state/ledev-context.md`、`.ai/state/ledev-task.md`。不要在目标项目根目录创建独立的 `state/` 目录。
 
 - 优先运行 `git rev-parse --is-inside-work-tree` 判断目标路径是否在 git 项目内。
+- 多仓库上下文中，目标路径指 `Primary repo`。对 `Related repos` 只做只读检查：路径是否存在、是否 git 工作树、`git status --short`、branch/tag/commit 信息和依赖解析证据；不要在关联仓库写 `.ai/` 或修改 ignore 文件。
 - 如果是 git 项目且允许写文件，读取或创建目标项目根目录的 `.gitignore`，确保包含 `.ai/drafts/`。
 - `.ai/drafts/` 规则已存在时不要重复追加；如果存在等价忽略规则，可以视为已满足。
 - 如果用户要求 dry-run/no-write，只报告需要加入 `.ai/drafts/`，不修改 `.gitignore`。
@@ -51,6 +52,7 @@
   - `.ai/facts/dependencies.md`
   - `.ai/facts/tests.md`
   - `.ai/facts/boundaries.md`
+  - `.ai/facts/related-repos.md`
   - `.ai/facts/evidence-index.md`
 - 推荐草稿文件：
   - `.ai/drafts/project-scan.md`
@@ -112,6 +114,7 @@
 
 - 目标路径。
 - 仓库类型判断：single-project、monorepo 或 unknown。
+- 多仓库形态判断：是否存在 `Primary repo` 和 `Related repos`，以及每个关联仓库的角色、扫描深度、写入策略和版本关系。
 - 主要语言候选和需要加载的语言规则。
 - 文件数量、顶层目录、关键配置文件和 ignore 文件。
 - deep scan、shallow record、exclude 范围。
@@ -136,6 +139,7 @@ scope 已写入并得到确认，或用户明确要求按当前 scope 继续时�
 识别：
 
 - 完整文件清单、目录结构和扫描排除范围。
+- Primary repo 和每个 Related repo 的仓库身份、扫描范围、git 状态、声明版本、实际解析来源、本地 checkout 和版本一致性。
 - 语言、包管理器、模块文件、构建文件、CI 文件。
 - README、docs、scripts 和命令说明。
 - generated、vendor、third-party、legacy 或高风险区域。
@@ -147,6 +151,7 @@ scope 已写入并得到确认，或用户明确要求按当前 scope 继续时�
 输出：
 
 - `.ai/facts/` 下的结构化事实文件。
+- 多仓库上下文写入 `.ai/facts/related-repos.md`，并在 `manifest.md`、`dependencies.md`、`boundaries.md` 和 `evidence-index.md` 引用。
 - 未扫描或无法读取内容的原因。
 - 事实缺口和可能进入 QA 的问题。
 
@@ -163,6 +168,8 @@ scope 已写入并得到确认，或用户明确要求按当前 scope 继续时�
 - `Confirmed Facts`：从仓库文件、命令或用户补充中确认的事实。
 - `Inferred Assumptions`：AI 推断但仍需确认的内容。
 - `Open Questions`：需要人确认的问题。
+
+多仓库草稿必须明确哪些结论来自 `Primary repo`，哪些来自 `Related repos`。如果本地关联仓库版本和主仓库实际解析版本不一致，草稿中不得把本地版本事实写成主仓库的 confirmed runtime behavior。
 
 草稿要足够简洁，方便后续任务开始前快速阅读。
 
@@ -205,6 +212,7 @@ scope 已写入并得到确认，或用户明确要求按当前 scope 继续时�
 前置检查：
 
 - 必须先读取 `.ai/facts/manifest.md`、相关事实文件、`.ai/drafts/project-context-draft.md` 和 `.ai/qa/project-qa.md`。
+- 如果存在 `.ai/facts/related-repos.md`，必须读取，并把多仓版本关系、只读边界和跨仓依赖事实提升到合适章节。
 - 如果 scope、scan、summarize 或 qa 缺失、未完成或明显 stale，先回到对应阶段，不直接写正式文档。
 - 如果 `.ai/project-context.md` 已存在，先读取并保留 `Human Notes`、`Corrections`、仍然相关的 QA 结论和人工补充。
 - 必须读取当前 `templates/project-context-template.md` 并用它校验现有 `.ai/project-context.md` 的结构。只要现有 Markdown 缺少当前模板要求的章节、表格、字段或生成规则，即使事实层没有变化，也视为 stale，必须刷新 Markdown。
@@ -216,6 +224,7 @@ scope 已写入并得到确认，或用户明确要求按当前 scope 继续时�
 
 内容分层要求：
 
+- 多仓库上下文必须区分主仓库负责范围、关联仓库参考范围和跨仓接口/协议边界。关联仓库不是本项目业务能力，除非它就是本项目运行时实际解析到的 workspace 成员或用户明确要求把多个仓库作为一个系统上下文描述。
 - 架构总览只画业务链路和核心执行单元；工程支撑、构建工具、测试工具、本地开发脚本、generated/third-party 边界不要进入主架构图。
 - 核心抽象只列影响业务理解和运行链路的抽象；普通 helper、配置辅助、测试夹具、构建脚本和生成代码不要列为核心抽象。
 - 业务能力只列项目对业务或运行链路提供的能力；构建、lint、测试、发版、代码生成、CI 和本地辅助能力放入工程支撑能力。
@@ -235,6 +244,7 @@ Markdown 上下文或文档写入成功后，才能把阶段锚点推进到 `md`
 前置检查：
 
 - 必须先读取 `.ai/facts/manifest.md`、相关事实文件、`.ai/qa/project-qa.md` 和 `.ai/project-context.md`。
+- 如果存在 `.ai/facts/related-repos.md`，必须读取；HTML 可以展示跨仓边界和版本风险的结论，但不要展示内部扫描路径或完整证据索引。
 - 如果 `.ai/project-context.md` 缺失、未完成、相对当前事实层明显 stale，或不符合当前 `templates/project-context-template.md` 的结构要求，先运行或要求运行 `md`。
 - 如果 HTML 当前章节需要的结构化来源在 Markdown 中缺失，例如业务能力、关键业务流程、数据域、核心对象、数据关系、状态机、状态流转、业务安全、加密相关或安全关注点，先运行或要求运行 `md`；不要直接从事实层临时拼 HTML 来掩盖 Markdown 过期。
 - 如果 scope、scan、summarize 或 qa 缺失、未完成或明显 stale，先回到对应阶段。
@@ -385,7 +395,7 @@ HTML 固定章节：
 
 维护时如果存在 `.ai/qa/project-qa.md`，要读取它。若新代码事实和已有 QA 答案冲突，追加描述冲突的新问题并请求确认，不要静默改写旧答案。
 
-发现代码变化时，先更新 `.ai/facts/` 中受影响的事实文件，再更新 `.ai/project-context.md`、QA、人类文档或 `.ai/state/ledev-context.md`。
+发现代码变化时，先更新 `.ai/facts/` 中受影响的事实文件，再更新 `.ai/project-context.md`、QA、人类文档或 `.ai/state/ledev-context.md`。多仓库上下文中，如果 Related repo 的 checkout、dirty 状态或解析版本变化影响 Primary repo 理解，先更新 `.ai/facts/related-repos.md` 和相关依赖事实。
 
 如果代码事实和人工补充冲突，记录冲突并询问用户。
 

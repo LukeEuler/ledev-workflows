@@ -4,7 +4,7 @@
 
 1. 识别操作：`new`、`continue`、`restart`、`view`、`close` 或 `block`。
 2. 检查 git 状态，识别用户已有改动。
-3. 读取已有 `.ai/project-context.md`、`.ai/facts/`、`.ai/qa/` 和相关 task。
+3. 读取已有 `.ai/project-context.md`、`.ai/facts/`、`.ai/qa/` 和相关 task；如果存在多仓库上下文，读取 `.ai/scope/scan-scope.md` 和 `.ai/facts/related-repos.md`。
 4. 观察目标代码架构和相关实现。
 5. 创建或更新 task，记录上下文、需求、范围、影响面和方案。
 6. 对需求不清或方案有取舍的问题，向用户确认。
@@ -21,6 +21,7 @@
 - 检查 `.ai/tasks/index.md` 和现有 task，避免重复创建。
 - 如果用户诉求可能属于未完成 task，先提示可 `continue T###`，除非用户明确要新建。
 - 扫描项目结构和相关代码，形成 task 草案。
+- 如果 `ledev-context` 声明了 `Primary repo` / `Related repos`，确认本次 task 的目标仓库、只读关联仓库、可能跨仓影响和版本一致性。
 - 记录用户原始诉求、已确认需求、待确认问题、范围、影响面、方案草案。
 - 需求和方案清楚时，可以直接进入实现；不清楚时先暂停确认。
 
@@ -31,6 +32,7 @@
 - 读取指定 task；未指定时从索引中选择唯一 `in_progress` task。若有多个，列出并要求用户指定。
 - 读取 task 的当前阶段、open questions、上次 touched files 和验证状态。
 - 重新检查 git 状态，确认期间是否有外部改动。
+- 多仓库 task 还要检查相关 `Related repos` 的只读 git 状态和 checkout 是否变化；如果变化影响事实层，先更新或建议更新 `ledev-context`。
 - 从上次未完成阶段继续，不重复已确认事项，除非代码或需求发生变化。
 
 ## restart / 重启
@@ -86,3 +88,23 @@
 - 问题可以通过代码事实验证，不依赖业务决策。
 
 无论是否暂停确认，都要把假设写入 task。
+
+## 多仓库上下文继承
+
+当 `.ai/scope/scan-scope.md` 或 `.ai/facts/related-repos.md` 声明多仓库上下文时，`ledev-task` 必须继承这些事实，而不是重新猜测仓库关系。
+
+执行要求：
+
+- `Primary repo` 是 task 文件、索引和状态文件的默认写入位置。
+- `Related repos` 默认 `read-only`；可以读取用于理解 API、协议、类型、日志格式、测试夹具、上游/下游行为或参考实现。
+- `Context Notes` 必须标明哪些观察来自主仓库，哪些来自关联仓库。
+- `Scope` 必须写清楚本次会修改哪些仓库；未获确认时，关联仓库默认 `Out of Scope`。
+- `Impact` 必须记录跨仓接口、协议、数据格式、依赖版本和兼容性风险。
+- `Validation Log` 必须分别记录主仓库和跨仓验证命令；只验证主仓库时，说明关联仓库未验证原因。
+
+版本处理：
+
+- 实现和验证优先依据主仓库的实际解析版本，例如 lockfile、`go.mod` + `replace`、`go.work`、vendor 或构建脚本。
+- 如果主仓库声明依赖 B 的版本是 `101`，但本地 B checkout 是 `102`，且没有证据表明构建会解析到本地 B，则不能把 B@102 的行为当作主仓库 confirmed behavior。
+- 如果构建配置明确解析到本地 B@102，则 task 必须记录它与声明版本 `101` 的差异，并把兼容性风险写入 `Impact`。
+- 需要精确修复/验证 `101` 时，优先使用独立 worktree、独立 clone 或 module cache；切换现有关联仓库 checkout 前必须确认，避免覆盖用户工作区。

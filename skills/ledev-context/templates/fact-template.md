@@ -5,12 +5,16 @@
 ## 事实元数据
 
 - 目标项目：
-- 文件类型：manifest | repo-structure | code-inventory | architecture-facts | commands | dependencies | tests | boundaries | evidence-index
+- Primary repo：
+- Related repo：
+- 文件类型：manifest | repo-structure | code-inventory | architecture-facts | commands | dependencies | tests | boundaries | related-repos | evidence-index
 - 扫描时间：
 - 创建者：
 - 状态：active | partial | stale
 - 扫描范围：
 - 排除范围：
+- 多仓库角色：primary | related | not-applicable
+- 版本关系：declared_version / resolved_source / local_checkout / version_match
 - 相关 QA：
 
 ## 已观察事实

@@ -34,6 +34,7 @@
 - `.ai/facts/dependencies.md`：missing | active | partial | stale
 - `.ai/facts/tests.md`：missing | active | partial | stale
 - `.ai/facts/boundaries.md`：missing | active | partial | stale
+- `.ai/facts/related-repos.md`：missing | active | partial | stale | not-applicable
 - `.ai/facts/evidence-index.md`：missing | active | partial | stale
 - `.ai/drafts/project-scan.md`：missing | active | complete | stale | promoted | archived | deleted
 - `.ai/drafts/project-context-draft.md`：missing | active | complete | stale | promoted | archived | deleted
@@ -60,3 +61,4 @@
 ## 交接说明
 
 - 给后续运行、其他 skill 或其他 AI agent 的交接说明。
+- 多仓库上下文交接：Primary repo、Related repos、版本关系、只读/可写边界，以及哪些关联仓库事实可被后续 skill 继承。

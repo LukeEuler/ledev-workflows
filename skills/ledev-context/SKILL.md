@@ -16,6 +16,8 @@ description: 面向中文用户。用于在开发、review、bugfix、测试或�
 - 上下文层：基于事实层和长期 QA 生成 AI 工作上下文。
 - 文档层：把稳定、已确认的信息沉淀为 Markdown/HTML 项目文档。
 
+支持单仓库、monorepo，以及“主仓库 + 关联仓库”的多仓库上下文。多仓库上下文必须有且只有一个 `Primary repo`；其他仓库只能作为 `Related repos` 写入主仓库 `.ai/` 产物，除非用户明确要求跨仓写入。
+
 ## 中文优先规则
 
 - 面向中文用户时，终端说明、QA 问题、草稿、最终上下文和人类文档都必须以中文为主。
@@ -32,6 +34,7 @@ description: 面向中文用户。用于在开发、review、bugfix、测试或�
 - 架构事实：模块依赖、调用方向、数据流入口和出口、外部依赖、存储/消息/网络边界、构建和运行边界。
 - 命令事实：build、run、test、lint、format、generate 命令及证据来源。
 - 风险边界事实：generated、vendor、third-party、legacy、敏感目录、dirty files、不能覆盖的文件。
+- 多仓库事实：Primary repo、Related repos、仓库角色、扫描深度、写入策略、声明依赖版本、实际解析版本、本地检出版本、版本不一致风险。
 - Human Notes、Corrections、QA answers、Open Questions
 
 工程支撑事实可以进入事实层，但生成 Markdown/HTML 时必须和业务能力、业务上下游、运行时依赖分开；`go.mod`、`Makefile`、CI、lint、测试、本地 dev scripts、generated 和 third-party 不应写成业务能力或业务外部依赖。
@@ -45,6 +48,7 @@ description: 面向中文用户。用于在开发、review、bugfix、测试或�
 - 在事实层做业务推理或意图猜测
 - 把不确定推断写成确认事实
 - 在没有证据的情况下写“核心”“主要”“推荐”等判断
+- 把本地关联仓库的当前 checkout 直接当成主仓库实际依赖版本，除非 `go.work`、`replace`、workspace、lockfile 或构建配置能证明实际解析到该路径。
 
 ## 读取 Reference
 
@@ -129,6 +133,7 @@ description: 面向中文用户。用于在开发、review、bugfix、测试或�
 ### 启动与阶段
 
 - 除 `default` 外，所有模式启动时先判断目标路径是否在 git 工作树内：优先运行 `git rev-parse --is-inside-work-tree`。
+- 多仓库上下文中，启动检查以 `Primary repo` 为目标项目；对每个 `Related repo` 只做只读存在性、git 状态和版本信息检查，默认不写入关联仓库。
 - `scope` 是正式第一阶段；不再使用 `plan` 作为阶段锚点。裸调用 `default` 只说明模式和推荐下一步。
 - 用户显式指定某个模式时，必须按该模式执行；不要因为当前阶段锚点已经在后续阶段，就自动跳到“下一步”或只执行后续阶段。下一步建议只作为执行完成后的提示，不改变本次用户指定的命令。
 - `scan` 必须先读取 `.ai/scope/scan-scope.md`。如果 scope 缺失、未确认或明显 stale，先运行或更新 `scope`。
@@ -149,6 +154,7 @@ description: 面向中文用户。用于在开发、review、bugfix、测试或�
 ### 写入与临时文件
 
 - 除非用户特别说明，所有 skill 在目标项目中产生的文件都必须限定在目标项目的 `.ai/` 目录下；运行进度写入 `.ai/state/<skill-name>.md`，长期知识写入 `.ai/facts/`、`.ai/qa/`、`.ai/project-context.md` 等对应子路径。
+- 多仓库上下文的 `.ai/` 产物默认只写入 `Primary repo`。不要为了记录事实在 `Related repos` 中创建 `.ai/`、修改 `.gitignore` 或写状态文件，除非用户明确把该关联仓库切换为独立目标项目。
 - 如果目标路径是 git 项目且允许写文件，必须确保 `.gitignore` 包含 `.ai/drafts/`；如果 `.gitignore` 不存在则创建。如果用户要求 dry-run/no-write，只报告需要加入该规则。
 - 显式 `scan` 模式写 `.ai/facts/`；显式 `summarize` 模式可以写 `.ai/drafts/` 草稿，除非用户要求 dry-run/no-write。
 - QA 写入长期文档 `.ai/qa/project-qa.md`，除非用户要求 dry-run/no-write。

@@ -61,6 +61,10 @@ description: 面向中文用户。用于把代码开发、bug 修复、重构、
 - 创建或继续 task 前，必须先检查目标项目是否在 git 工作树中，并读取 `git status --short`，识别用户已有改动。
 - 实现前必须观察代码架构和相关上下文。至少确认项目结构、技术栈、相关模块、相似实现、命令入口、测试方式和风险边界。
 - 如果目标项目存在 `.ai/project-context.md`、`.ai/facts/` 或 `.ai/state/ledev-context.md`，必须优先读取。缺失、明显过期或任务影响面较大时，先运行或建议运行 `ledev-context`。
+- 如果 `ledev-context` 事实层声明了 `Primary repo` 和 `Related repos`，必须继承多仓库上下文：读取 `.ai/scope/scan-scope.md`、`.ai/facts/related-repos.md`、`.ai/facts/dependencies.md`、`.ai/facts/boundaries.md` 和相关事实文件。
+- task 写入边界默认只在 `Primary repo`。`Related repos` 默认只读参考；除非用户明确要求跨仓改动，否则不得修改关联仓库。
+- 如果任务必须跨仓修改，先在 task 的 `Scope`、`Impact` 和 `Decision Log` 记录涉及的仓库、写入边界、版本关系、验证命令和用户确认。
+- 如果关联仓库本地 checkout 与主仓库声明或实际解析版本不一致，task 中必须记录该风险；实现判断优先以实际解析版本为准，本地 checkout 只能作为参考，除非解析证据指向本地路径。
 - 不允许把需求不清、影响面不明、方案取舍未定的工作直接推进到实现。先把疑问写入 task，并向用户确认。
 
 ### task 记录

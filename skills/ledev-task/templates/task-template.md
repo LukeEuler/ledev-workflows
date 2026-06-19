@@ -35,6 +35,7 @@
 
 - Git status: 待记录。
 - Project context: 待记录。
+- Multi-repo context: Primary repo / Related repos / version relationship / write boundaries 待记录；不适用时写 `not-applicable`。
 - Relevant files: 待记录。
 - Similar implementations: 待记录。
 - Commands / tests: 待记录。

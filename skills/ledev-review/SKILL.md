@@ -18,9 +18,13 @@ Lead with findings. Focus on bugs, behavioral regressions, data loss, missing va
 Read, when present:
 
 - `.ai/project-context.md`
+- `.ai/scope/scan-scope.md`
+- `.ai/facts/related-repos.md`
 - `.ai/state/ledev-review.md`
 - relevant `.ai/state/ledev-*.md` files when reviewing prior implementation, testing, or bugfix work
 - language rules identified by `ledev-context`
+
+If `ledev-context` declares `Primary repo` and `Related repos`, inherit that multi-repo context. Review findings must distinguish primary-repo changes from related-repo reference facts, respect read-only related repos, and call out dependency version mismatches instead of assuming the local related checkout is the resolved dependency version.
 
 ## 文件布局约定
 

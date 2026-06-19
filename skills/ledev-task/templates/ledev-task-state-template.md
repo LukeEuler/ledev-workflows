@@ -9,6 +9,13 @@
 
 - None.
 
+## Multi-Repo Context
+
+- Primary Repo: None.
+- Related Repos: None.
+- Version Relationship: not-applicable.
+- Write Boundary: primary repo only.
+
 ## Open Questions
 
 - None.
