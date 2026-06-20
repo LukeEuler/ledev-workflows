@@ -285,11 +285,11 @@ Markdown 上下文或文档写入成功后，才能把阶段锚点推进到 `md`
 
 生成流程：
 
-1. AI 读取事实层、长期 QA、`.ai/project-context.md`、HTML 模板说明和脚本要求后，先生成 `.ai/drafts/project-context-html-data.json`。
+1. AI 读取事实层、长期 QA、`.ai/project-context.md`、HTML 模板说明和脚本要求后，先生成 `.ai/drafts/project-context-html-data.json`。普通 `placeholders` 只能填纯文本；表格、列表、流程、模型、依赖和架构边界必须使用结构化字段，由脚本生成 HTML。
 2. `html` 运行时以 `scripts/render_project_context_html.py` 为准：脚本从当前 `project-context-html-template.html` 提取所需 `{{PLACEHOLDER}}`，并执行结构自检。不要把 `templates/project-context-html-data-template.json` 当作运行时对齐标准；它只是 skill 开发参考。
 3. 生成 JSON 时先阅读 `generation_notes`，尤其是 `topology_mapping`；根据目标项目类型把输入、程序本身、输出和运行时依赖组件映射到 `LEFT_TIER_*`、`ENGINE_*`、`RIGHT_TIER_*` 和 `BOTTOM_TIER_*`，不要被字段名里的 left/right 限制。架构图只放组件短名和极短关系；路径、QA、完整句子、工程支撑和代码边界不要进入最终 HTML。
 4. 常规生成只修改 `.ai/drafts/project-context-html-data.json`；如果需要新增组件、调整结构、改 HTML/CSS 或改变布局，先修改 `templates/project-context-html-template.html`，再重新渲染。
-5. `placeholders` 中的每个值都必须是面向 HTML 读者的事实摘要、QA 编号或明确的未确认说明；不要放入依据路径、内部索引或未转义 HTML 片段，除非用户明确要求并准备使用脚本的 `--no-escape`。
+5. `placeholders` 中的每个值都必须是面向 HTML 读者的事实摘要、QA 编号或明确的未确认说明；不要放入依据路径、内部索引或未转义 HTML 片段。`PROJECT_OWNED_SCOPE` 和 `PROJECT_OUT_OF_SCOPE` 是兼容旧字段，只允许纯文本；新数据必须使用 `project_owned_scope_items` 和 `project_out_of_scope_items`。
 6. 运行 `scripts/render_project_context_html.py`，渲染到 `.ai/project-context.html`。如果正式 HTML 已存在，脚本会先自动备份旧版本到 `.ai/drafts/project-context.<timestamp>.html`，再覆盖正式文件。
 7. 如果脚本报告缺失占位符、未替换占位符或缺少固定章节，必须先修正 `.ai/drafts/project-context-html-data.json` 或模板，再重新渲染。
 8. 生成完成后，如果脚本创建了备份，向用户说明可以执行 `rollback` 回退，并展示脚本输出的备份列表。
@@ -338,6 +338,7 @@ HTML 固定章节：
 
 - 项目概述：一句话定位和核心能力卡。一句话定位来自 `.ai/project-context.md` 的“1. 项目定位”；核心能力卡必须覆盖 `.ai/project-context.md` 的“5. 业务能力与模块划分”中的业务能力，不覆盖工程支撑能力；卡片只展示能力名称和一句话能力定位/解决的问题。关键代码和外部依赖放在后续业务或依赖章节。
 - 架构：严格使用 `arch-html` 系统组件全景结构表达模块地图、调用方向、边界、入口、关键数据流和外部边界；可以替换节点名称和说明，但不要扩展或改写结构。中心必须是程序本身，例如项目名、主二进制、核心服务名或核心 runtime；左右列可映射输入/上游和输出/下游；底部只展示对运行链路重要的运行时依赖组件。不要强行套服务架构图，CLI、库、插件、monorepo、数据管道和工具项目可以按真实关系映射输入、程序本身、输出和运行时依赖。图中禁止写路径、QA、完整句子、工程支撑和代码边界；`go.mod`、`Makefile`、CI、lint、测试、dev scripts、generated/third-party 边界不要进入 HTML 架构图。
+- 架构范围表：脚本从 `project_owned_scope_items` 和 `project_out_of_scope_items` 生成“项目负责范围/不负责范围”表格。每项使用 `{ "scope": "...", "description": "..." }`；不要把 HTML 表格字符串写入普通占位符。
 - 核心业务：按 `.ai/project-context.md` “9. 关键业务流程”逐条渲染。每条流程必须有独立 `<h3>`、业务意图、脚本生成的 Mermaid `sequenceDiagram` 和轻量阶段卡片。参与方只允许外部触发源、本系统整体、直接外部下游或承载业务语义的消息/锁等中间件；内部类、Controller、Service、Task、Cache、Util、Manager、DB、配置中心和监控系统不要作为 Mermaid 参与方，相关细节折叠为本系统动作或阶段说明。
 - 核心数据模型与状态机：基于 `.ai/project-context.md` “8. 核心数据与状态模型”生成 `data_domains`、`data_entities`、`data_relations`、`state_machine`，由脚本渲染为 Mermaid `flowchart TB` ER 图和 Mermaid `stateDiagram-v2` 状态机图。状态名优先保留中文名、枚举名和数值，展示为 `中文名(ENUM_NAME=数值)`；没有状态机时明确写“未发现：状态机”。最终 HTML 不展示证据、路径、QA 索引或内部来源。
 - 安全相关：基于 `.ai/project-context.md` “10. 安全防控”生成 `security_controls`、`crypto_scenarios`、`security_concerns`，由脚本渲染为业务安全表、加密相关场景表和安全关注点。业务安全表只展示防控点、防什么、怎么防、失败结果；加密相关只展示场景、保护对象、加密/签名/脱敏手段、凭据托管概念级位置和失败结果；安全关注点用 `callout.warn`。最终 HTML 不展示证据、路径、QA 索引、具体凭据变量名、密钥值、算法参数明细、完整标准对照或审计打分。

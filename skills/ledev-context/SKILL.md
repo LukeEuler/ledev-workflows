@@ -81,6 +81,7 @@ description: 面向中文用户。用于在开发、review、bugfix、测试或�
 `html`、`document` 和 `full` 中默认使用 AI + 脚本流程生成 HTML。详细流程见 `references/modes.md` 和 `templates/project-context-html-template.md`，主规则只保留以下约束：
 
 - AI 只生成 `.ai/drafts/project-context-html-data.json` 中的纯文本占位符；脚本 `scripts/render_project_context_html.py` 负责读取模板、HTML 转义、占位符替换和结构自检。
+- HTML 中需要表格、列表、流程、模型、依赖或架构边界时，AI 必须生成结构化 JSON 字段，由脚本生成 HTML；不要把 `<table>`、`<tr>`、`<div>` 等 HTML 字符串塞进普通占位符。
 - `templates/project-context-html-data-template.json` 只是 skill 开发参考，不作为 `html` 运行时标准；运行时字段集合以脚本从当前 HTML 模板提取的占位符为准。
 - 如果 `.ai/project-context.html` 已存在，脚本先把旧版本备份到 `.ai/drafts/project-context.<timestamp>.html`，再直接覆盖正式文件；备份最多保留 5 个，超过后删除最旧备份。
 - HTML/CSS/布局调整必须先修改 `templates/project-context-html-template.html`，再重新渲染；不要只修改单次生成产物。

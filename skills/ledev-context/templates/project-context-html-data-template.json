@@ -1,6 +1,6 @@
 {
   "schema": "ledev-context.project-context-html-data.v1",
-  "description": "AI 在 html 阶段生成的中间数据。脚本读取 placeholders，并读取 business_flows、data_domains、data_entities、data_relations、state_machine、security_controls、crypto_scenarios、security_concerns、dependency_links、external_dependencies、configuration_controls、onboarding_tasks、onboarding_reading_path、recovery_scenarios、recovery_principles、project_conventions、project_specific_matrix、project_specific_notes 生成结构化 HTML；其他字段用于人工审阅和后续扩展。",
+  "description": "AI 在 html 阶段生成的中间数据。脚本读取 placeholders，并读取 project_owned_scope_items、project_out_of_scope_items、business_flows、data_domains、data_entities、data_relations、state_machine、security_controls、crypto_scenarios、security_concerns、dependency_links、external_dependencies、configuration_controls、onboarding_tasks、onboarding_reading_path、recovery_scenarios、recovery_principles、project_conventions、project_specific_matrix、project_specific_notes 生成结构化 HTML；其他字段用于人工审阅和后续扩展。",
   "sources": {
     "facts": ".ai/facts/",
     "qa": ".ai/qa/project-qa.md",
@@ -9,6 +9,7 @@
   "generation_notes": {
     "value_rules": [
       "所有 placeholders 值都使用纯文本，不放 HTML 片段。",
+      "项目负责范围和不负责范围使用 project_owned_scope_items、project_out_of_scope_items；不要把 HTML 表格写入 PROJECT_OWNED_SCOPE 或 PROJECT_OUT_OF_SCOPE。",
       "重要结论写成短句；事实依据只用于生成判断，最终 HTML 不展示依据路径、索引或内部来源标签。",
       "没有足够依据时按 status_language 选择固定表达，不要编造模块、流程或状态机。",
       "confirmed、inferred、risk、open question 等状态词只在有依据时使用，并和正文说明一致。",
@@ -114,6 +115,18 @@
       "relation": "关联",
       "to": "核心对象 B",
       "meaning": "一句话说明二者业务关系。"
+    }
+  ],
+  "project_owned_scope_items": [
+    {
+      "scope": "示例负责范围",
+      "description": "一句话说明本项目负责的业务或运行边界。"
+    }
+  ],
+  "project_out_of_scope_items": [
+    {
+      "scope": "示例不负责范围",
+      "description": "一句话说明该范围为什么不由本项目负责，或交由哪里处理。"
     }
   ],
   "state_machine": {
@@ -337,8 +350,8 @@
     "BOTTOM_TIER_ITEM_3_NOTE": "约 10 个字以内；无法确认时写“未确认”。",
     "BOTTOM_TIER_ITEM_4": "第四个运行时必需组件短名；没有时写“未确认”。",
     "BOTTOM_TIER_ITEM_4_NOTE": "约 10 个字以内；无法确认时写“未确认”。",
-    "PROJECT_OWNED_SCOPE": "项目负责范围。",
-    "PROJECT_OUT_OF_SCOPE": "不负责或未覆盖范围。",
+    "PROJECT_OWNED_SCOPE": "兼容旧字段，仅允许纯文本；新数据请使用 project_owned_scope_items。",
+    "PROJECT_OUT_OF_SCOPE": "兼容旧字段，仅允许纯文本；新数据请使用 project_out_of_scope_items。",
     "BUSINESS_SUMMARY": "核心业务摘要。",
     "BUSINESS_CONFIDENCE": "inferred",
     "MODEL_SUMMARY": "用 1-2 句说明核心数据域、核心对象、主要关系和状态机结论；不要展示内部来源路径。",

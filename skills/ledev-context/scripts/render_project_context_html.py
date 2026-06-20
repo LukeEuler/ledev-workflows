@@ -27,6 +27,7 @@ TRUSTED_HTML_PLACEHOLDERS = {
     "PROJECT_SPECIFICS_HTML",
     "RECOVERY_HTML",
     "SECURITY_HTML",
+    "SCOPE_BOUNDARY_HTML",
 }
 
 REQUIRED_SECTIONS = [
@@ -226,6 +227,12 @@ DEPENDENCY_FORBIDDEN_PATTERNS = [
     re.compile(r"generated|third[-_ ]party\s*目录|vendor\s*目录", re.IGNORECASE),
 ]
 
+HTML_TAG_RE = re.compile(r"</?[A-Za-z][^>]*>")
+LEGACY_SCOPE_PLACEHOLDERS = {
+    "PROJECT_OWNED_SCOPE": "project_owned_scope_items",
+    "PROJECT_OUT_OF_SCOPE": "project_out_of_scope_items",
+}
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -421,6 +428,118 @@ def validate_recovery_text(label: str, value: Any, problems: list[str]) -> None:
         if pattern.search(text):
             problems.append(f"{label} 不应把实现缺陷或 Bug 写入 HTML 故障恢复：{text[:50]}")
             break
+
+
+def validate_plain_placeholder_html(placeholders: dict[str, str], *, skip: bool = False) -> None:
+    if skip:
+        return
+    problems: list[str] = []
+    for key, replacement in LEGACY_SCOPE_PLACEHOLDERS.items():
+        value = placeholders.get(key, "")
+        if HTML_TAG_RE.search(value):
+            problems.append(
+                f"{key} 只能是纯文本；请改用结构化字段 {replacement}，由脚本生成 HTML 表格。"
+            )
+    if problems:
+        preview = "\n".join(f"- {item}" for item in problems)
+        raise SystemExit(f"HTML 架构范围字段自检失败：\n{preview}")
+
+
+def normalize_scope_items(raw_items: Any, *, label: str, fallback_text: str, problems: list[str]) -> list[dict[str, str]]:
+    if raw_items is None:
+        return []
+    if not isinstance(raw_items, list):
+        problems.append(f"{label} 必须是数组。")
+        return []
+
+    items: list[dict[str, str]] = []
+    for index, raw_item in enumerate(raw_items, start=1):
+        if isinstance(raw_item, str):
+            scope = as_text(raw_item, fallback_text)
+            description = "未确认：说明"
+        elif isinstance(raw_item, dict):
+            scope = as_text(
+                raw_item.get("scope")
+                or raw_item.get("name")
+                or raw_item.get("range")
+                or raw_item.get("item"),
+                fallback_text,
+            )
+            description = as_text(
+                raw_item.get("description")
+                or raw_item.get("summary")
+                or raw_item.get("note")
+                or raw_item.get("reason"),
+                "未确认：说明",
+            )
+        else:
+            problems.append(f"{label}[{index}] 必须是对象或字符串。")
+            continue
+
+        if HTML_TAG_RE.search(scope) or HTML_TAG_RE.search(description):
+            problems.append(f"{label}[{index}] 只能包含纯文本，不能包含 HTML 标签。")
+            continue
+        items.append({"scope": scope, "description": description})
+    return items
+
+
+def build_scope_boundary_html(data: dict[str, Any], placeholders: dict[str, str], *, skip_validation: bool = False) -> str:
+    problems: list[str] = []
+    owned_items = normalize_scope_items(
+        data.get("project_owned_scope_items"),
+        label="project_owned_scope_items",
+        fallback_text="未确认：负责范围",
+        problems=problems,
+    )
+    out_items = normalize_scope_items(
+        data.get("project_out_of_scope_items"),
+        label="project_out_of_scope_items",
+        fallback_text="未确认：不负责范围",
+        problems=problems,
+    )
+
+    if not owned_items:
+        legacy_owned = as_text(placeholders.get("PROJECT_OWNED_SCOPE"), "")
+        if legacy_owned:
+            owned_items = [{"scope": "项目负责范围", "description": legacy_owned}]
+    if not out_items:
+        legacy_out = as_text(placeholders.get("PROJECT_OUT_OF_SCOPE"), "")
+        if legacy_out:
+            out_items = [{"scope": "不负责的范围", "description": legacy_out}]
+
+    if skip_validation and not owned_items:
+        owned_items = [{"scope": "项目负责范围", "description": "说明本项目实际负责的边界。"}]
+    if skip_validation and not out_items:
+        out_items = [{"scope": "不负责的范围", "description": "说明本项目不覆盖或交由其他系统处理的边界。"}]
+
+    if not skip_validation and not owned_items:
+        problems.append("缺少 project_owned_scope_items，无法渲染项目负责范围。")
+    if not skip_validation and not out_items:
+        problems.append("缺少 project_out_of_scope_items，无法渲染不负责范围。")
+
+    if problems:
+        preview = "\n".join(f"- {item}" for item in problems[:12])
+        suffix = "" if len(problems) <= 12 else f"\n... 共 {len(problems)} 个问题"
+        raise SystemExit(f"HTML 架构范围自检失败：\n{preview}{suffix}")
+
+    def rows(kind: str, items: list[dict[str, str]]) -> str:
+        return "".join(
+            "<tr>"
+            f"<td>{escape_text(kind)}</td>"
+            f"<td>{escape_text(item.get('scope'), '未确认：范围')}</td>"
+            f"<td>{escape_text(item.get('description'), '未确认：说明')}</td>"
+            "</tr>"
+            for item in items
+        )
+
+    return (
+        '<div class="table-wrap scope-table">'
+        "<table><thead><tr>"
+        "<th>边界</th><th>范围</th><th>说明</th>"
+        "</tr></thead><tbody>"
+        f'{rows("项目负责范围", owned_items)}{rows("不负责的范围", out_items)}'
+        "</tbody></table></div>"
+    )
 
 
 def build_configuration_html(data: dict[str, Any], *, skip_validation: bool = False) -> str:
@@ -1653,11 +1772,20 @@ def main() -> int:
     validate_output_path(args.out)
     data = load_json(args.data)
     placeholders = normalize_placeholders(data)
+    validate_plain_placeholder_html(
+        placeholders,
+        skip=args.data.name == "project-context-html-data-template.json",
+    )
     placeholders["BUSINESS_CONFIDENCE_CLASS"] = status_badge_class(placeholders.get("BUSINESS_CONFIDENCE"), "inferred")
     placeholders["STATE_MACHINE_STATUS_CLASS"] = status_badge_class(placeholders.get("STATE_MACHINE_STATUS"), "open")
     placeholders["SECURITY_STATUS_CLASS"] = status_badge_class(placeholders.get("SECURITY_STATUS"), "risk")
     placeholders["BUSINESS_FLOWS_HTML"] = build_business_flows_html(
         data,
+        skip_validation=args.data.name == "project-context-html-data-template.json",
+    )
+    placeholders["SCOPE_BOUNDARY_HTML"] = build_scope_boundary_html(
+        data,
+        placeholders,
         skip_validation=args.data.name == "project-context-html-data-template.json",
     )
     placeholders["CONFIGURATION_HTML"] = build_configuration_html(
