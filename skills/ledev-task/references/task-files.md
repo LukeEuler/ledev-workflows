@@ -43,6 +43,23 @@ task 状态使用稳定英文值，中文说明可以写在旁边：
 
 `restart` 是事件，不是长期状态。重启后通常回到 `in_progress`。
 
+## task 阶段
+
+`Status` 表示任务整体状态，`Phase` 表示当前执行阶段。`Phase` 使用稳定英文值：
+
+- `requirements_draft`：已记录原始诉求，正在总结需求和开放问题。
+- `requirements_confirming`：正在等待用户补充或确认需求边界。
+- `requirements_confirmed`：需求、范围和成功标准已初步明确，可以观察代码和设计方案。
+- `context_reviewed`：已完成必要上下文观察，发现的代码事实已记录。
+- `solution_options`：已列出一个或多个方案，等待用户选择或认可。
+- `solution_confirmed`：用户已确认最终方案和验证计划，可以进入实现。
+- `implementing`：正在实现或修复。
+- `validating`：正在验证。
+- `done`：实现、验证和收尾完成。
+- `blocked`：缺少用户决策、权限、依赖、环境或外部条件。
+
+`new` 创建的 task 通常从 `requirements_draft`、`requirements_confirming` 或 `requirements_confirmed` 开始；不得在最终方案确认前进入 `implementing`。
+
 ## task 类型
 
 task 类型使用稳定英文值，中文说明可以写在旁边。`Type` 是必填字段；如果用户没有明确说明，先根据诉求和代码事实推断，不能可靠推断时写入 `Open Questions` 并向用户确认。
@@ -75,13 +92,17 @@ task 类型使用稳定英文值，中文说明可以写在旁边。`Type` 是�
 - `Task`：编号和标题。
 - `Type`：task 主类型。
 - `Status`：当前状态。
+- `Phase`：当前阶段。
 - `Created` 和 `Updated`：日期或时间戳。
 - `User Request`：用户原始诉求，尽量保留原意。
+- `Requirement Summary`：agent 对需求的当前理解，包括目标、交付物、成功标准和关键假设。
 - `Confirmed Requirements`：已确认需求。
 - `Open Questions`：待确认问题。
 - `Scope`：会改什么、不会改什么。
 - `Impact`：影响面、风险边界、兼容性判断。
 - `Context Notes`：代码架构观察、相关文件、相似实现、命令和测试入口。
+- `Solution Options`：可选方案、差异、成本、风险、验证方式；只有一个方案时记录采用理由。
+- `Final Plan`：用户最终确认的需求、不做范围、采用方案、预计修改位置、验证计划和剩余风险。
 - `Decision Log`：方案、取舍、用户确认和重启原因。
 - `Implementation Log`：实际改动记录。
 - `Validation Log`：命令、结果、失败或未执行原因。
@@ -105,7 +126,7 @@ task 类型使用稳定英文值，中文说明可以写在旁边。`Type` 是�
 `.ai/state/ledev-task.md` 只记录运行锚点，不替代 task 文件：
 
 - 当前 active task。
-- 当前阶段。
+- 当前阶段。阶段值使用 task 阶段规则。
 - 最近操作。
 - touched files。
 - open questions。

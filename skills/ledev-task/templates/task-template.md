@@ -2,12 +2,20 @@
 
 - Type: feature
 - Status: todo
+- Phase: requirements_draft
 - Created: YYYY-MM-DD
 - Updated: YYYY-MM-DD
 
 ## User Request
 
 待记录。
+
+## Requirement Summary
+
+- Goal: 待总结。
+- Deliverable: 待总结。
+- Success Criteria: 待确认。
+- Assumptions: 待确认。
 
 ## Confirmed Requirements
 
@@ -40,6 +48,19 @@
 - Similar implementations: 待记录。
 - Commands / tests: 待记录。
 - Risk boundaries: 待记录。
+
+## Solution Options
+
+- 待提出。
+
+## Final Plan
+
+- Confirmed need: 待确认。
+- Out of scope: 待确认。
+- Selected solution: 待确认。
+- Expected files: 待确认。
+- Validation plan: 待确认。
+- Residual risks: 待确认。
 
 ## Decision Log
 
