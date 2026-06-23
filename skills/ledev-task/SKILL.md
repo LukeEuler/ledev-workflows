@@ -1,6 +1,6 @@
 ---
 name: ledev-task
-description: 面向中文用户。用于把代码开发、bug 修复、重构、小型工具生成和实现相关文档变更统一纳入编号 task 工作流。Use when Codex needs to create, continue, restart, view, implement, fix, or close typed development tasks before modifying project code, configs, tests, scripts, docs tied to implementation, or diagnosing bugs that may require code changes. 产物包括 .ai/tasks/ 下的 T### task 文件、.ai/tasks/index.md 状态索引和 .ai/state/ledev-task.md 运行状态；验证阶段可读取或交接给 ledev-test，但不替代独立测试治理。
+description: 面向中文用户。用于把代码开发、bug 修复、重构、小型工具生成和实现相关文档变更统一纳入编号 task 工作流。Use when Codex needs to create, continue, restart, implement, fix, or close typed development tasks before modifying project code, configs, tests, scripts, docs tied to implementation, or diagnosing bugs that may require code changes. 产物包括 .ai/tasks/ 下的 T### task 文件、.ai/tasks/index.md 状态索引和 .ai/state/ledev-task.md 运行状态；验证阶段可读取或交接给 ledev-test，但不替代独立测试治理。
 ---
 
 # LEDev Task
@@ -14,7 +14,7 @@ description: 面向中文用户。用于把代码开发、bug 修复、重构、
 ## 读取 Reference
 
 - task 字段、编号、索引和状态文件规则：读 `references/task-files.md`。
-- 新建、继续、重启、查看、收尾等操作细节：读 `references/workflow.md`。
+- 默认入口、新建、继续、重启、收尾等操作细节：读 `references/workflow.md`。
 - 写文件时使用模板：
   - `templates/task-template.md`
   - `templates/task-index-template.md`
@@ -32,11 +32,10 @@ description: 面向中文用户。用于把代码开发、bug 修复、重构、
 
 把 skill 名称后的第一个词视为操作名。操作名大小写不敏感；中文和英文都支持。
 
-- `default`：说明当前可用操作；不扫描、不写文件。
+- `default`：当用户只输入 `$ledev-task` 且没有其他参数时，读取 task 状态，展示任务统计和未完成任务，并询问用户下一步意图；默认不写文件，除非索引缺失或 stale 且用户允许刷新。
 - `new` / `新建`：为新的开发、修复、重构或工具生成工作启动需求澄清、方案选择和最终确认流程；确认前只允许创建或更新 task 草案，不允许推进实现。
 - `continue` / `继续`：读取现有 task，从上次阶段继续。
 - `restart` / `重启`：需求不变但上一阶段实现或方案不适用时，保留历史并重启当前 task。
-- `view` / `查看`：查看 task 总数、状态分布、当前进行中 task、阻塞 task 和最近完成 task。
 - `close` / `完成`：实现和验证结束后收尾，标记 task 为 `done`。
 - `block` / `阻塞`：缺少用户决策、权限、依赖或外部条件时，标记 task 为 `blocked`。
 
@@ -46,7 +45,6 @@ description: 面向中文用户。用于把代码开发、bug 修复、重构、
 - `$ledev-task new 实现导出 CSV`
 - `$ledev-task continue T003`
 - `$ledev-task restart T003`
-- `$ledev-task view`
 - `$ledev-task close T003`
 
 ## 硬性规则

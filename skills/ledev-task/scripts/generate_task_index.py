@@ -51,6 +51,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Exit non-zero if .ai/tasks/index.md is missing or stale.",
     )
+    parser.add_argument(
+        "--unfinished-report",
+        action="store_true",
+        help="Print task stats and unfinished tasks without writing files.",
+    )
     return parser.parse_args()
 
 
@@ -173,6 +178,53 @@ def render_index(tasks: list[Task]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def render_unfinished_report(tasks: list[Task]) -> str:
+    counts = status_counts(tasks)
+    unfinished = [
+        task for task in sorted(tasks, key=lambda item: item.task_id)
+        if task.status not in {"done", "obsolete"}
+    ]
+    status_parts = [
+        f"{status_icon(status)} `{status}` {counts.get(status, 0)}"
+        for status in KNOWN_STATUSES
+    ]
+    status_parts.extend(
+        f"{status_icon(status)} `{status}` {counts[status]}"
+        for status in sorted(set(counts) - set(KNOWN_STATUSES))
+    )
+
+    lines = [
+        f"- Total: {len(tasks)}",
+        f"- Status: {' · '.join(status_parts)}",
+        "",
+        "## Unfinished",
+        "",
+    ]
+    if not unfinished:
+        lines.append("- None.")
+    else:
+        lines.extend(
+            [
+                "| Task | Type | Title | Status |",
+                "| --- | --- | --- | --- |",
+            ]
+        )
+        for task in unfinished:
+            lines.append(
+                "| "
+                + " | ".join(
+                    [
+                        task_link(task, task.task_id),
+                        escape_cell(task.task_type),
+                        task_link(task, task.title),
+                        escape_cell(status_icon(task.status)),
+                    ]
+                )
+                + " |"
+            )
+    return "\n".join(lines) + "\n"
+
+
 def load_tasks(tasks_dir: Path) -> list[Task]:
     if not tasks_dir.exists():
         return []
@@ -189,7 +241,13 @@ def main() -> int:
     project_root = Path(args.project_root).resolve()
     tasks_dir = project_root / ".ai" / "tasks"
     index_path = tasks_dir / "index.md"
-    rendered = render_index(load_tasks(tasks_dir))
+    tasks = load_tasks(tasks_dir)
+
+    if args.unfinished_report:
+        sys.stdout.write(render_unfinished_report(tasks))
+        return 0
+
+    rendered = render_index(tasks)
 
     if args.dry_run:
         sys.stdout.write(rendered)

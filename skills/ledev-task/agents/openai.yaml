@@ -1,4 +1,4 @@
 interface:
   display_name: "ledev-task"
   short_description: "Typed task workflow for code changes and bug fixes."
-  default_prompt: "Use ledev-task to create, continue, restart, view, implement, and close typed development tasks."
+  default_prompt: "Use ledev-task to show task stats by default, then create, continue, restart, implement, and close typed development tasks."

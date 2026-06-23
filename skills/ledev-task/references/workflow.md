@@ -2,7 +2,7 @@
 
 ## 总流程
 
-1. 识别操作：`new`、`continue`、`restart`、`view`、`close` 或 `block`。
+1. 识别操作：`default`、`new`、`continue`、`restart`、`close` 或 `block`。
 2. 检查 git 状态，识别用户已有改动。
 3. 对 `new` 先完成需求澄清；对其他操作读取已有 task 的阶段和上下文。
 4. 读取已有 `.ai/project-context.md`、`.ai/facts/`、`.ai/qa/` 和相关 task；如果存在多仓库上下文，读取 `.ai/scope/scan-scope.md` 和 `.ai/facts/related-repos.md`。
@@ -14,6 +14,27 @@
 10. 运行聚焦验证，必要时扩大验证范围或交接 `ledev-test`。
 11. 更新验证记录，用 `scripts/generate_task_index.py` 刷新索引，并更新状态文件。
 12. 收尾报告。
+
+## default / 无参数
+
+用于用户只输入 `$ledev-task`，没有其他参数时。
+
+执行：
+
+- 检查目标项目是否存在 `.ai/tasks/`。
+- 读取 `.ai/tasks/index.md`；缺失或明显 stale 时，优先运行 `python3 <ledev-task-skill-dir>/scripts/generate_task_index.py <target-project-root>` 刷新索引。若当前场景不允许写文件，使用 `--dry-run` 或 `--unfinished-report` 只读输出。
+- 展示 task 总数和状态统计。
+- 列出未完成任务。未完成任务指状态不是 `done` 且不是 `obsolete` 的 task，通常包括 `todo`、`in_progress` 和 `blocked`。
+- 询问用户下一步意图，给出简短可执行选项，例如：`continue T###`、`new <需求>`、`restart T###`、`close T###`、`block T###`。
+- 不进入需求澄清、方案设计或实现；必须等用户明确下一步操作。
+
+推荐只读命令：
+
+```sh
+python3 <ledev-task-skill-dir>/scripts/generate_task_index.py --unfinished-report <target-project-root>
+```
+
+如果没有任何 task，说明当前没有 task，并询问用户是否要 `new <需求>`。
 
 ## new / 新建
 
@@ -62,16 +83,6 @@
 - 将状态设为 `in_progress`。
 - 重新做必要的上下文观察和需求确认。
 - 不删除历史实现记录；如果需要回滚代码，必须得到用户明确指令或只修改当前 agent 自己刚做的改动。
-
-## view / 查看
-
-执行：
-
-- 读取 `.ai/tasks/index.md`；缺失时扫描 `.ai/tasks/T*.md` 重建摘要。
-- 输出 task 总数、状态分布、当前进行中 task、阻塞 task、最近完成 task。
-- 不写文件，除非索引缺失或明显 stale，且用户允许维护索引。
-- 如果维护或重建索引，`## Tasks` 表格中的 task id 和 title 都必须链接到对应 task 文件。
-- 优先运行 `python3 <ledev-task-skill-dir>/scripts/generate_task_index.py <target-project-root>` 重建索引；脚本不可用时才手工维护。
 
 ## close / 完成
 
