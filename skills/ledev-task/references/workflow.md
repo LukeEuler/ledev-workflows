@@ -12,7 +12,7 @@
 8. 收到最终确认后实现或修复。
 9. 更新实现记录。
 10. 运行聚焦验证，必要时扩大验证范围或交接 `ledev-test`。
-11. 更新验证记录、索引和状态文件。
+11. 更新验证记录，用 `scripts/generate_task_index.py` 刷新索引，并更新状态文件。
 12. 收尾报告。
 
 ## new / 新建
@@ -70,6 +70,8 @@
 - 读取 `.ai/tasks/index.md`；缺失时扫描 `.ai/tasks/T*.md` 重建摘要。
 - 输出 task 总数、状态分布、当前进行中 task、阻塞 task、最近完成 task。
 - 不写文件，除非索引缺失或明显 stale，且用户允许维护索引。
+- 如果维护或重建索引，`## Tasks` 表格中的 task id 和 title 都必须链接到对应 task 文件。
+- 优先运行 `python3 <ledev-task-skill-dir>/scripts/generate_task_index.py <target-project-root>` 重建索引；脚本不可用时才手工维护。
 
 ## close / 完成
 
@@ -78,6 +80,7 @@
 - 确认实现记录和验证记录完整。
 - 若未运行验证，必须说明原因和剩余风险；通常不要标记 `done`。
 - 更新 task 状态为 `done`，同步索引和 `.ai/state/ledev-task.md`。
+- 同步索引时优先运行 `scripts/generate_task_index.py`，确保 `## Tasks` 表格里的 task id 和 title 都链接到对应 task 文件。
 - 最终回复包含文件变更、验证命令、结果和剩余风险。
 
 ## block / 阻塞

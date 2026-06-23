@@ -19,11 +19,13 @@ description: 面向中文用户。用于把代码开发、bug 修复、重构、
   - `templates/task-template.md`
   - `templates/task-index-template.md`
   - `templates/ledev-task-state-template.md`
+- 维护 task 索引时优先使用脚本：`scripts/generate_task_index.py`。
 
 ## 中文优先规则
 
 - 面向中文用户时，对话说明、task 内容、方案记录、验证结论都以中文为主。
-- 命令、路径、状态值、代码符号、测试名称和短确认 token 可以保留英文。
+- task 文件中的说明性内容以中文为主；字段名、状态值、阶段值、类型值、命令、路径、代码符号、测试名称和短确认 token 可以保留英文。
+- task 标题优先使用中文；需要对接英文术语、模块名或便于检索时，可以写成中文为主、英文为辅的双语标题，例如 `导出任务索引链接 / Link Task Index`。
 - 需要用户输入短确认时使用英文 token，例如 `yes/no`、`continue/stop`、`confirm/edit`。
 
 ## 操作语义
@@ -76,10 +78,11 @@ description: 面向中文用户。用于把代码开发、bug 修复、重构、
 
 - task 编号使用 `T###`，从 `T001` 开始递增，不复用已删除或废弃编号。
 - 允许写入目标项目 `.ai/` 时，task 文件写入 `.ai/tasks/T###-短标题.md`；索引写入 `.ai/tasks/index.md`；运行状态写入 `.ai/state/ledev-task.md`。
+- task 标题和内容说明以中文为主，必要时标题可双语且英文为辅。
 - 每个 task 必须记录类型、当前阶段、用户原始诉求、需求理解、需求确认、开放问题、范围、影响面、方案选项、方案决策、最终确认、实现记录、验证结果、剩余风险和历史事件。
 - 每个 task 必须有 `Type`。优先使用 `feature`（开发）或 `bugfix`（修复 bug）；其他常见类型见 `references/task-files.md`。
 - `restart` 不应删除历史。追加重启事件，说明为什么上一阶段不适用、保留哪些产物、废弃哪些假设。
-- `.ai/tasks/index.md` 是状态汇总，不替代单个 task 详情。更新 task 状态后同步更新索引。
+- `.ai/tasks/index.md` 是状态汇总，不替代单个 task 详情。更新 task 状态后同步更新索引；索引优先由 `python3 <skill>/scripts/generate_task_index.py <target-project-root>` 生成，确保 Tasks 表格里的 task id 和 title 都链接到对应 task 文件。
 
 ### 实现与修复
 

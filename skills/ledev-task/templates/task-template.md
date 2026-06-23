@@ -1,4 +1,4 @@
-# T000 Task Title
+# T000 中文任务标题 / Optional English Title
 
 - Type: feature
 - Status: todo
