@@ -1,31 +1,14 @@
 # LEDev Tasks
 
-- Updated: YYYY-MM-DD
 - Total: 0
-- ⬜ `todo`: 0
-- 🔄 `in_progress`: 0
-- ⛔ `blocked`: 0
-- ✅ `done`: 0
-- 🗑️ `obsolete`: 0
-
-## Active
-
-- None.
-
-## Blocked
-
-- None.
-
-## Recently Done
-
-- None.
+- Status: ⬜ `todo` 0 · 🔄 `in_progress` 0 · ⛔ `blocked` 0 · ✅ `done` 0 · 🗑️ `obsolete` 0
 
 ## Tasks
 
-| Task | Type | Title | Status | Updated | Summary |
-| --- | --- | --- | --- | --- | --- |
+| Task | Type | Title | Status |
+| --- | --- | --- | --- |
 <!-- Rows use linked task id and linked title, for example:
-| [T001](./T001-短标题.md) | feature | [中文任务标题 / Optional English Title](./T001-短标题.md) | 🔄 | YYYY-MM-DD | 中文摘要，关键词可保留英文。 |
+| [T001](./T001-短标题.md) | feature | [中文任务标题 / Optional English Title](./T001-短标题.md) | 🔄 |
 -->
 
 <!-- Prefer generating this file with:

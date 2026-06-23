@@ -7,7 +7,6 @@ import argparse
 import re
 import sys
 from dataclasses import dataclass
-from datetime import date
 from pathlib import Path
 
 
@@ -29,9 +28,6 @@ class Task:
     title: str
     task_type: str
     status: str
-    updated: str
-    summary: str
-    blocked_reason: str
     path: Path
 
 
@@ -82,60 +78,6 @@ def heading_title(lines: list[str], task_id: str, fallback: str) -> str:
     return fallback
 
 
-def section_lines(lines: list[str], heading: str) -> list[str]:
-    marker = f"## {heading}"
-    for index, line in enumerate(lines):
-        if line.strip() == marker:
-            body: list[str] = []
-            for candidate in lines[index + 1 :]:
-                if candidate.startswith("## "):
-                    break
-                body.append(candidate)
-            return body
-    return []
-
-
-def first_meaningful_bullet(lines: list[str]) -> str:
-    for line in lines:
-        stripped = line.strip()
-        if not stripped.startswith("- "):
-            continue
-        value = stripped[2:].strip()
-        if not value or value.lower() in {"none.", "none", "not started."}:
-            continue
-        if value.startswith(("待", "None")):
-            continue
-        return value
-    return ""
-
-
-def summary_from(lines: list[str]) -> str:
-    requirement = section_lines(lines, "Requirement Summary")
-    for line in requirement:
-        stripped = line.strip()
-        if not stripped.startswith("- "):
-            continue
-        label_value = stripped[2:].split(":", 1)
-        value = label_value[1].strip() if len(label_value) == 2 else label_value[0].strip()
-        if value and not value.startswith("待"):
-            return value
-
-    confirmed = first_meaningful_bullet(section_lines(lines, "Confirmed Requirements"))
-    if confirmed:
-        return confirmed
-    return "待补充。"
-
-
-def blocked_reason_from(lines: list[str]) -> str:
-    handoff = first_meaningful_bullet(section_lines(lines, "Handoff / Next"))
-    if handoff:
-        return handoff
-    question = first_meaningful_bullet(section_lines(lines, "Open Questions"))
-    if question:
-        return question
-    return "未记录阻塞原因。"
-
-
 def fallback_title(path: Path, task_id: str) -> str:
     stem = path.stem
     prefix = f"{task_id}-"
@@ -156,9 +98,6 @@ def parse_task(path: Path) -> Task | None:
         title=heading_title(lines, task_id, fallback_title(path, task_id)),
         task_type=field_value(lines, "Type", "chore"),
         status=field_value(lines, "Status", "todo"),
-        updated=field_value(lines, "Updated", "unknown"),
-        summary=summary_from(lines),
-        blocked_reason=blocked_reason_from(lines),
         path=path,
     )
 
@@ -177,11 +116,6 @@ def task_link(task: Task, text: str) -> str:
     return f"[{escape_cell(text)}]({link_target(task.path)})"
 
 
-def task_item(task: Task, extra: str | None = None) -> str:
-    suffix = f" - {escape_cell(extra)}" if extra else ""
-    return f"- {task_link(task, task.task_id)} - {task_link(task, task.title)}{suffix}"
-
-
 def status_icon(status: str) -> str:
     return STATUS_ICONS.get(status, "❔")
 
@@ -197,48 +131,29 @@ def status_counts(tasks: list[Task]) -> dict[str, int]:
 def render_index(tasks: list[Task]) -> str:
     counts = status_counts(tasks)
     sorted_tasks = sorted(tasks, key=lambda task: task.task_id)
-    active = [task for task in sorted_tasks if task.status == "in_progress"]
-    blocked = [task for task in sorted_tasks if task.status == "blocked"]
-    done = sorted(
-        (task for task in sorted_tasks if task.status == "done"),
-        key=lambda task: (task.updated, task.task_id),
-        reverse=True,
-    )[:5]
+    status_parts = [
+        f"{status_icon(status)} `{status}` {counts.get(status, 0)}"
+        for status in KNOWN_STATUSES
+    ]
+    status_parts.extend(
+        f"{status_icon(status)} `{status}` {counts[status]}"
+        for status in sorted(set(counts) - set(KNOWN_STATUSES))
+    )
 
     lines: list[str] = [
         "# LEDev Tasks",
         "",
-        f"- Updated: {date.today().isoformat()}",
         f"- Total: {len(tasks)}",
+        f"- Status: {' · '.join(status_parts)}",
     ]
-
-    for status in KNOWN_STATUSES:
-        lines.append(f"- {status_icon(status)} `{status}`: {counts.get(status, 0)}")
-    for status in sorted(set(counts) - set(KNOWN_STATUSES)):
-        lines.append(f"- {status_icon(status)} `{status}`: {counts[status]}")
-
-    lines.extend(["", "## Active", ""])
-    lines.extend(task_item(task) for task in active)
-    if not active:
-        lines.append("- None.")
-
-    lines.extend(["", "## Blocked", ""])
-    lines.extend(task_item(task, task.blocked_reason) for task in blocked)
-    if not blocked:
-        lines.append("- None.")
-
-    lines.extend(["", "## Recently Done", ""])
-    lines.extend(task_item(task) for task in done)
-    if not done:
-        lines.append("- None.")
 
     lines.extend(
         [
             "",
             "## Tasks",
             "",
-            "| Task | Type | Title | Status | Updated | Summary |",
-            "| --- | --- | --- | --- | --- | --- |",
+            "| Task | Type | Title | Status |",
+            "| --- | --- | --- | --- |",
         ]
     )
     for task in sorted_tasks:
@@ -250,8 +165,6 @@ def render_index(tasks: list[Task]) -> str:
                     escape_cell(task.task_type),
                     task_link(task, task.title),
                     escape_cell(status_icon(task.status)),
-                    escape_cell(task.updated),
-                    escape_cell(task.summary),
                 ]
             )
             + " |"
