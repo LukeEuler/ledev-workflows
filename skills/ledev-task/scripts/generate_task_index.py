@@ -14,6 +14,13 @@ from pathlib import Path
 TASK_FILE_RE = re.compile(r"^(T[0-9]{3})-.+\.md$")
 FIELD_RE = re.compile(r"^- ([A-Za-z][A-Za-z ]*):\s*(.*)$")
 KNOWN_STATUSES = ("todo", "in_progress", "blocked", "done", "obsolete")
+STATUS_ICONS = {
+    "todo": "⬜",
+    "in_progress": "🔄",
+    "blocked": "⛔",
+    "done": "✅",
+    "obsolete": "🗑️",
+}
 
 
 @dataclass(frozen=True)
@@ -175,6 +182,10 @@ def task_item(task: Task, extra: str | None = None) -> str:
     return f"- {task_link(task, task.task_id)} - {task_link(task, task.title)}{suffix}"
 
 
+def status_icon(status: str) -> str:
+    return STATUS_ICONS.get(status, "❔")
+
+
 def status_counts(tasks: list[Task]) -> dict[str, int]:
     counts = {status: 0 for status in KNOWN_STATUSES}
     for task in tasks:
@@ -202,9 +213,9 @@ def render_index(tasks: list[Task]) -> str:
     ]
 
     for status in KNOWN_STATUSES:
-        lines.append(f"- {status}: {counts.get(status, 0)}")
+        lines.append(f"- {status_icon(status)} `{status}`: {counts.get(status, 0)}")
     for status in sorted(set(counts) - set(KNOWN_STATUSES)):
-        lines.append(f"- {status}: {counts[status]}")
+        lines.append(f"- {status_icon(status)} `{status}`: {counts[status]}")
 
     lines.extend(["", "## Active", ""])
     lines.extend(task_item(task) for task in active)
@@ -238,7 +249,7 @@ def render_index(tasks: list[Task]) -> str:
                     task_link(task, task.task_id),
                     escape_cell(task.task_type),
                     task_link(task, task.title),
-                    escape_cell(task.status),
+                    escape_cell(status_icon(task.status)),
                     escape_cell(task.updated),
                     escape_cell(task.summary),
                 ]
