@@ -5,12 +5,14 @@ from __future__ import annotations
 
 import argparse
 import re
+import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
 
 
-TASK_FILE_RE = re.compile(r"^(T[0-9]{3})-.+\.md$")
+TASK_FILE_RE = re.compile(r"^(T[0-9]{3,})-.+\.md$")
+TASK_ID_RE = re.compile(r"\bT([0-9]{3,})\b")
 FIELD_RE = re.compile(r"^- ([A-Za-z][A-Za-z ]*):\s*(.*)$")
 KNOWN_STATUSES = ("todo", "in_progress", "blocked", "done", "obsolete")
 STATUS_ICONS = {
@@ -55,6 +57,14 @@ def parse_args() -> argparse.Namespace:
         "--unfinished-report",
         action="store_true",
         help="Print task stats and unfinished tasks without writing files.",
+    )
+    parser.add_argument(
+        "--next-id",
+        action="store_true",
+        help=(
+            "Print the next non-reused task id by scanning task files, index/state "
+            "records, and git history when available."
+        ),
     )
     return parser.parse_args()
 
@@ -133,9 +143,16 @@ def status_counts(tasks: list[Task]) -> dict[str, int]:
     return counts
 
 
+def task_sort_key(task: Task) -> tuple[int, str]:
+    match = TASK_ID_RE.search(task.task_id)
+    if not match:
+        return (sys.maxsize, task.task_id)
+    return (int(match.group(1)), task.task_id)
+
+
 def render_index(tasks: list[Task]) -> str:
     counts = status_counts(tasks)
-    sorted_tasks = sorted(tasks, key=lambda task: task.task_id)
+    sorted_tasks = sorted(tasks, key=task_sort_key)
     status_parts = [
         f"{status_icon(status)} `{status}` {counts.get(status, 0)}"
         for status in KNOWN_STATUSES
@@ -181,7 +198,7 @@ def render_index(tasks: list[Task]) -> str:
 def render_unfinished_report(tasks: list[Task]) -> str:
     counts = status_counts(tasks)
     unfinished = [
-        task for task in sorted(tasks, key=lambda item: item.task_id)
+        task for task in sorted(tasks, key=task_sort_key)
         if task.status not in {"done", "obsolete"}
     ]
     status_parts = [
@@ -229,11 +246,74 @@ def load_tasks(tasks_dir: Path) -> list[Task]:
     if not tasks_dir.exists():
         return []
     tasks: list[Task] = []
-    for path in sorted(tasks_dir.glob("T[0-9][0-9][0-9]-*.md")):
+    for path in sorted(tasks_dir.glob("T[0-9]*-*.md")):
         task = parse_task(path)
         if task:
             tasks.append(task)
     return tasks
+
+
+def task_ids_from_text(text: str) -> set[int]:
+    return {int(match.group(1)) for match in TASK_ID_RE.finditer(text)}
+
+
+def task_ids_from_path(path: Path) -> set[int]:
+    return task_ids_from_text(path.name)
+
+
+def task_ids_from_existing_records(project_root: Path, tasks_dir: Path) -> set[int]:
+    ids: set[int] = set()
+    if tasks_dir.exists():
+        for path in tasks_dir.rglob("*"):
+            ids.update(task_ids_from_path(path))
+            if path.is_file() and path.suffix == ".md":
+                try:
+                    ids.update(task_ids_from_text(read_text(path)))
+                except OSError:
+                    pass
+
+    state_path = project_root / ".ai" / "state" / "ledev-task.md"
+    if state_path.exists():
+        try:
+            ids.update(task_ids_from_text(read_text(state_path)))
+        except OSError:
+            pass
+
+    return ids
+
+
+def task_ids_from_git_history(project_root: Path) -> set[int]:
+    try:
+        result = subprocess.run(
+            [
+                "git",
+                "-C",
+                str(project_root),
+                "log",
+                "--all",
+                "--name-only",
+                "--pretty=format:",
+                "--",
+                ".ai/tasks",
+            ],
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        )
+    except (OSError, ValueError):
+        return set()
+
+    if result.returncode != 0:
+        return set()
+    return task_ids_from_text(result.stdout)
+
+
+def next_task_id(project_root: Path, tasks_dir: Path) -> str:
+    ids = task_ids_from_existing_records(project_root, tasks_dir)
+    ids.update(task_ids_from_git_history(project_root))
+    next_number = max(ids, default=0) + 1
+    return f"T{next_number:03d}"
 
 
 def main() -> int:
@@ -242,6 +322,10 @@ def main() -> int:
     tasks_dir = project_root / ".ai" / "tasks"
     index_path = tasks_dir / "index.md"
     tasks = load_tasks(tasks_dir)
+
+    if args.next_id:
+        print(next_task_id(project_root, tasks_dir))
+        return 0
 
     if args.unfinished_report:
         sys.stdout.write(render_unfinished_report(tasks))

@@ -40,7 +40,14 @@ python3 <ledev-task-skill-dir>/scripts/generate_task_index.py --unfinished-repor
 
 执行：
 
-- 检查 `.ai/tasks/index.md` 和现有 task，避免重复创建。
+- 检查 `.ai/tasks/index.md`、`.ai/tasks/`、`.ai/state/ledev-task.md` 和 git 历史中已有 task 编号及未完成任务，避免重复创建。
+- 创建 task 文件前必须先分配下一个不复用编号。优先运行只读命令：
+
+```sh
+python3 <ledev-task-skill-dir>/scripts/generate_task_index.py --next-id <target-project-root>
+```
+
+- 如果 `--next-id` 不可用，按 `references/task-files.md` 的编号规则手工扫描所有可见历史编号，取最大编号加一；不得因为索引缺失、目录为空、没有 active task 或解析失败而回退到 `T001`。
 - 如果用户诉求可能属于未完成 task，先提示可 `continue T###`，除非用户明确要新建。
 - 如果 `$ledev-task new` 后没有需求描述，先要求用户描述需求；如果后面已有文字，将其作为 `User Request` 原始诉求。
 - 总结 agent 对需求的理解，至少包括目标、预期交付物、可能涉及的功能或模块、已知不做范围和当前假设。

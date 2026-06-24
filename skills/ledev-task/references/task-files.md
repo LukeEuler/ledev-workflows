@@ -27,8 +27,21 @@
 ## 编号规则
 
 - 编号格式固定为 `T###`，例如 `T001`、`T023`。
-- 新 task 编号取 `.ai/tasks/` 中最大编号加一。
-- 不复用已删除、废弃、obsolete 或重启过的编号。
+- 创建新 task 前必须先分配编号，禁止因为 `.ai/tasks/index.md` 缺失、`.ai/tasks/` 目录不存在、当前未发现未完成任务或解析失败而直接使用 `T001`。
+- 新 task 编号取所有可见历史编号的最大值加一；历史编号包括：
+  - `.ai/tasks/` 下任意文件名中的 `T###`。
+  - `.ai/tasks/` 下 Markdown 文件内容中的 `T###`。
+  - `.ai/tasks/index.md` 中的 `T###` 链接或文本。
+  - `.ai/state/ledev-task.md` 中的 active task、历史记录或 touched files。
+  - git 历史中曾出现过的 `.ai/tasks/T###-*` 路径；如果目标项目不是 git 仓库或历史不可读，记录无法读取历史的事实。
+- 不复用已删除、废弃、`obsolete`、重启过、已完成或当前不存在但有记录的编号。
+- 允许写入目标项目 `.ai/` 时，优先运行只读命令获取编号：
+
+```sh
+python3 <ledev-task-skill-dir>/scripts/generate_task_index.py --next-id <target-project-root>
+```
+
+- 如果脚本不可用，必须按上述历史来源手工扫描并取最大值加一；手工扫描结果要写入 task 的 `Decision Log` 或本次对话记录。
 - 文件名使用 `T###-短标题.md`。短标题用小写 hyphen-case 或中文短词均可，避免空格和过长描述。
 - task 标题优先中文；需要保留英文模块名、概念或检索关键词时，可以使用中文为主、英文为辅的双语标题，例如 `更新任务索引链接 / Link Task Index`。
 - task 文件中的说明性内容以中文为主；字段名、状态值、阶段值、类型值、命令、路径、代码符号、测试名称和短确认 token 可以保留英文。
