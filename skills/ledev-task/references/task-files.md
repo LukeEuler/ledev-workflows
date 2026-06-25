@@ -43,6 +43,7 @@ python3 <ledev-task-skill-dir>/scripts/generate_task_index.py --next-id <target-
 
 - 如果脚本不可用，必须按上述历史来源手工扫描并取最大值加一；手工扫描结果要写入 task 的 `Decision Log` 或本次对话记录。
 - 文件名使用 `T###-短标题.md`。短标题用小写 hyphen-case 或中文短词均可，避免空格和过长描述。
+- 每个 task 文件第一行必须提供返回索引的相对链接：`[返回任务索引](./index.md)`，方便从 task 详情跳回 `.ai/tasks/index.md`。
 - task 标题优先中文；需要保留英文模块名、概念或检索关键词时，可以使用中文为主、英文为辅的双语标题，例如 `更新任务索引链接 / Link Task Index`。
 - task 文件中的说明性内容以中文为主；字段名、状态值、阶段值、类型值、命令、路径、代码符号、测试名称和短确认 token 可以保留英文。
 
@@ -104,6 +105,7 @@ task 类型使用稳定英文值，中文说明可以写在旁边。`Type` 是�
 
 每个 task 文件必须包含：
 
+- 第一行返回索引链接：`[返回任务索引](./index.md)`。
 - `Task`：编号和标题。
 - `Type`：task 主类型。
 - `Status`：当前状态。

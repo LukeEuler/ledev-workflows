@@ -78,6 +78,7 @@ description: 面向中文用户。用于把代码开发、bug 修复、重构、
 - 新 task 编号必须取所有可见历史编号的最大值加一，历史来源至少包括 `.ai/tasks/` 文件名和内容、`.ai/tasks/index.md`、`.ai/state/ledev-task.md`，以及 git 历史中曾出现过的 `.ai/tasks/T###-*` 路径；不复用已删除、废弃、`obsolete`、重启过或当前不存在但有记录的编号。
 - 允许写入目标项目 `.ai/` 时，优先用只读命令 `python3 <skill>/scripts/generate_task_index.py --next-id <target-project-root>` 获取新编号；命令不可用时，按上述历史来源手工扫描后再取最大值加一。
 - 允许写入目标项目 `.ai/` 时，task 文件写入 `.ai/tasks/T###-短标题.md`；索引写入 `.ai/tasks/index.md`；运行状态写入 `.ai/state/ledev-task.md`。
+- 每个 task 文件第一行必须写入返回索引链接：`[返回任务索引](./index.md)`，指向同目录下的 `.ai/tasks/index.md`。
 - task 标题和内容说明以中文为主，必要时标题可双语且英文为辅。
 - 每个 task 必须记录类型、当前阶段、用户原始诉求、需求理解、需求确认、开放问题、范围、影响面、方案选项、方案决策、最终确认、实现记录、验证结果、剩余风险和历史事件。
 - 每个 task 必须有 `Type`。优先使用 `feature`（开发）或 `bugfix`（修复 bug）；其他常见类型见 `references/task-files.md`。
