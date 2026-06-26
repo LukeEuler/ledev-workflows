@@ -1,16 +1,16 @@
-# LEDev Review State
+# LEDev Review 状态
 
-- Active review report:
-- Mode:
+- 当前审查报告:
+- 模式（Mode）:
 - Base:
 - Head:
 - Diff expression:
-- Intent status:
-- Findings:
+- 意图状态:
+- 问题统计:
   - Blocker:
   - Major:
   - Minor:
   - Nit:
-- Validation status:
-- Open questions:
-- Updated:
+- 验证状态:
+- 待确认问题:
+- 更新时间:

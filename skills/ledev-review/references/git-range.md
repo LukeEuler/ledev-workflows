@@ -1,4 +1,4 @@
-# Git Range
+# Git 范围
 
 ## 原则
 
@@ -127,15 +127,15 @@ review main..feature
 每次 review 必须记录：
 
 ```text
-Review range:
-- Mode: committed-linear-range | single-commit
+审查范围:
+- 模式（Mode）: committed-linear-range | single-commit
 - Base ref:
 - Base commit:
 - Head ref:
 - Head commit:
 - Diff expression:
-- Commit count:
-- Commit list:
-- Working tree clean: yes
-- Contains merge commits: no
+- 提交数量:
+- 提交列表:
+- 工作区干净: yes
+- 包含 merge commit: no
 ```

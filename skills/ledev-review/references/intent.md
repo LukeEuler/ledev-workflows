@@ -1,4 +1,4 @@
-# Intent
+# 用户意图
 
 ## 目标
 
@@ -28,12 +28,12 @@ review 必须比较“用户想解决什么”和“代码实际改变了什么�
 记录：
 
 ```text
-Intent:
-- Stated goal:
-- Inferred goal:
-- Actual changes:
-- Goal alignment: met | partially met | not met | unclear
-- Notes:
+用户意图:
+- 用户明确目标:
+- 推断目标:
+- 实际变更:
+- 目标一致性（Goal alignment）: met | partially met | not met | unclear
+- 备注:
 ```
 
-如果 `Goal alignment` 是 `unclear`，先沟通；如果用户不提供信息，只能给出基于技术事实的有限 review。
+如果 `目标一致性（Goal alignment）` 是 `unclear`，先沟通；如果用户不提供信息，只能给出基于技术事实的有限 review。

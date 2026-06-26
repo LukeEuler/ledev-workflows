@@ -1,47 +1,47 @@
-# Review Report
+# 代码审查报告
 
-## Review Range
+## 审查范围
 
-- Mode:
+- 模式（Mode）:
 - Base ref:
 - Base commit:
 - Head ref:
 - Head commit:
 - Diff expression:
-- Commit count:
-- Commit list:
-- Working tree clean:
-- Contains merge commits:
+- 提交数量:
+- 提交列表:
+- 工作区干净:
+- 包含 merge commit:
 
-## Intent
+## 用户意图
 
-- Stated goal:
-- Inferred goal:
-- Actual changes:
-- Goal alignment:
-- Notes:
+- 用户明确目标:
+- 推断目标:
+- 实际变更:
+- 目标一致性（Goal alignment）:
+- 备注:
 
-## Findings
+## 审查发现
 
-### Finding 1
+### 发现 1
 
-- Severity:
-- Location:
-- Problem:
-- Impact:
-- Evidence:
-- Recommendation:
+- 严重级别（Severity）:
+- 位置（Location）:
+- 问题:
+- 影响:
+- 证据:
+- 建议:
 
-## Validation
+## 验证情况
 
-- Commands reviewed:
-- Tests observed:
-- Validation gaps:
+- 已查看命令:
+- 已观察测试:
+- 验证缺口:
 
-## Open Questions
+## 待确认问题
 
 - 
 
-## Summary
+## 总结
 
 - 

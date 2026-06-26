@@ -1,4 +1,4 @@
-# Findings
+# 问题发现
 
 ## 输出姿态
 
@@ -16,21 +16,21 @@
 每条 finding 包含：
 
 ```text
-- Severity:
-- Location:
-- Problem:
-- Impact:
-- Evidence:
-- Recommendation:
+- 严重级别（Severity）:
+- 位置（Location）:
+- 问题:
+- 影响:
+- 证据:
+- 建议:
 ```
 
 要求：
 
-- `Location` 使用文件和行号。
-- `Problem` 描述具体缺陷，不写泛泛意见。
-- `Impact` 说明用户可观察后果或维护后果。
-- `Evidence` 指向 diff、上下文代码、任务目标或测试缺口。
-- `Recommendation` 给出最小修复方向，不展开成完整实现，除非修复方式很直接。
+- `位置（Location）` 使用文件和行号。
+- `问题` 描述具体缺陷，不写泛泛意见。
+- `影响` 说明用户可观察后果或维护后果。
+- `证据` 指向 diff、上下文代码、任务目标或测试缺口。
+- `建议` 给出最小修复方向，不展开成完整实现，除非修复方式很直接。
 
 ## 不应作为主要 finding 的内容
 

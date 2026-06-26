@@ -1,4 +1,4 @@
-# Report
+# 报告
 
 ## 落盘位置
 
@@ -26,16 +26,18 @@
 - 未确认问题。
 - 后续建议。
 
+报告的标题、字段名和说明文字必须中文为主。可以保留稳定英文关键词或枚举值，例如 `Severity`、`Mode`、`Blocker`、`Major`、`committed-linear-range`；代码符号、命令、路径、文件名、包名、类型名和 API 名称保持原样。
+
 ## 状态文件
 
 `.ai/state/ledev-review.md` 只记录最近一次运行锚点：
 
-- active review report。
+- 当前审查报告。
 - mode、base、head、diff expression。
-- intent status。
-- findings count by severity。
-- validation status。
-- open questions。
-- updated time。
+- 意图状态。
+- 按严重级别统计的问题数量。
+- 验证状态。
+- 待确认问题。
+- 更新时间。
 
 不要把完整 report 塞进状态文件。
