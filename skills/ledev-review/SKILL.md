@@ -53,9 +53,9 @@ description: 面向中文用户。用于对 Git 项目中已经 commit 的线性
 1. 建立 Git 范围。
    - 读取 `references/git-range.md`。
    - 把用户输入解析成 `committed-linear-range` 或 `single-commit`。
-   - 优先运行 `scripts/preflight.sh --range <base> <head>` 或 `scripts/preflight.sh --commit <commit>` 完成只读预检。
+   - 优先运行 `scripts/preflight.sh --json --range <base> <head>` 或 `scripts/preflight.sh --json --commit <commit>` 完成只读预检；需要人类可读输出时可省略 `--json`。
    - 如果脚本不可用，按 `references/git-range.md` 手工检查工作区干净、revision 存在、范围线性、无 merge commit、范围非空。
-   - 将预检输出的 mode、base/head commit、diff expression、commit list 和 diff stat 用作报告范围元数据。
+   - 将预检输出的 mode、base/head commit、diff expression、commit list、diff stat 和大范围 warning 用作报告范围元数据。
    - 失败时停止 review，给出最小修复命令提示。
 
 2. 建立上下文和意图。
@@ -89,10 +89,6 @@ description: 面向中文用户。用于对 Git 项目中已经 commit 的线性
 ## 与其他 LEDev Skill 的关系
 
 - `ledev-context`：review 前优先读取其事实层；上下文缺失且影响面较大时，建议先建立或刷新上下文。
-- `ledev-task`：如果变更来自 task，读取 task 的目标、方案、实现记录和验证记录，用于意图一致性检查。
+- `ledev-task`：如果变更来自 task，读取 task 的目标、方案、实现记录、验证记录和 `Handoff / Next`，用于意图一致性检查与遗留事项识别。
 - `ledev-test`：review 只指出测试缺口和建议验证，不接管独立测试治理。
 - `ledev-review` 默认不改代码；用户明确要求修复 finding 时，转入开发/修复 task 工作流。
-
-## 中文优先规则
-
-面向中文用户时，对话、审查结论、报告和状态记录以中文为主。文件路径、命令、符号、严重级别和代码标识保留原文。

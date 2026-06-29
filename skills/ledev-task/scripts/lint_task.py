@@ -10,6 +10,7 @@ from pathlib import Path
 
 
 FIELD_RE = re.compile(r"^- ([A-Za-z][A-Za-z ]*):\s*(.*)$")
+TEMPLATE_MARKER_RE = re.compile(r"^<!--\s*ledev-task-template:\s*(full|light)\s*-->\s*$")
 PLACEHOLDER_RE = re.compile(
     r"(待记录|待总结|待确认|待提出|待实现|待验证|待补充|\bTODO\b|\bTBD\b)",
 )
@@ -85,15 +86,21 @@ def fields(text: str) -> dict[str, str]:
     return result
 
 
-def is_light(section_map: dict[str, str]) -> bool:
-    return "Plan" in section_map and "Activity Log" in section_map and "Final Plan" not in section_map
+def template_kind(text: str) -> str | None:
+    lines = text.splitlines()
+    if len(lines) < 2:
+        return None
+    match = TEMPLATE_MARKER_RE.match(lines[1].strip())
+    if not match:
+        return None
+    return match.group(1)
 
 
 def has_placeholder(value: str) -> bool:
     return bool(PLACEHOLDER_RE.search(value))
 
 
-def meaningful(value: str) -> bool:
+def close_meaningful(value: str) -> bool:
     stripped = value.strip()
     if not stripped:
         return False
@@ -113,6 +120,10 @@ def main() -> int:
     if not text.startswith("[返回任务索引](./index.md)"):
         problems.append("missing first-line index link")
 
+    kind = template_kind(text)
+    if kind is None:
+        problems.append("missing template marker: <!-- ledev-task-template: full|light -->")
+
     field_map = fields(text)
     for name in REQUIRED_FIELDS:
         value = field_map.get(name, "")
@@ -122,7 +133,7 @@ def main() -> int:
             problems.append(f"field still has placeholder: {name}")
 
     section_map = sections(text)
-    required_sections = LIGHT_SECTIONS if is_light(section_map) else FULL_SECTIONS
+    required_sections = LIGHT_SECTIONS if kind == "light" else FULL_SECTIONS
     for name in required_sections:
         value = section_map.get(name)
         if value is None:
@@ -132,17 +143,17 @@ def main() -> int:
 
     if args.closing:
         validation = section_map.get("Validation Log", "")
-        if not meaningful(validation):
+        if not close_meaningful(validation):
             problems.append("Validation Log is not complete enough for close")
 
-        activity_section = "Activity Log" if is_light(section_map) else "Implementation Log"
+        activity_section = "Activity Log" if kind == "light" else "Implementation Log"
         activity = section_map.get(activity_section, "")
-        if not meaningful(activity):
+        if not close_meaningful(activity):
             problems.append(f"{activity_section} is not complete enough for close")
 
-        plan_section = "Plan" if is_light(section_map) else "Final Plan"
+        plan_section = "Plan" if kind == "light" else "Final Plan"
         plan = section_map.get(plan_section, "")
-        if not meaningful(plan):
+        if not close_meaningful(plan):
             problems.append(f"{plan_section} is not complete enough for close")
 
     if problems:

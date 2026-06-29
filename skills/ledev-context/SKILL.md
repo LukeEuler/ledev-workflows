@@ -20,11 +20,7 @@ description: 面向中文用户。用于在开发、review、bugfix、测试或�
 
 ## 中文优先规则
 
-- 面向中文用户时，终端说明、QA 问题、草稿、最终上下文和人类文档都必须以中文为主。
-- 命令、文件路径、配置项、代码标识、模式名、状态值、字段名可以保留英文，例如 `qa`、`Status`、`QA-001`、`.ai/project-context.md`。
-- 需要用户输入的短确认 token、短命令和选项必须使用英文，例如 `Y/N`、`yes/no`、`rollback`、`delete/keep`、`continue/stop`、`edit/confirm`。可以用中文解释含义，但不要要求用户输入“是/否”“确认/取消”“覆盖/跳过”“删除/保留”等中文短命令。
-- 如果用户用英文回答，可以保留原文；需要进入正式上下文或人类文档时，用中文总结。
-- 不要因为模板字段是英文就输出整段英文说明。
+遵循 `../_shared/references/shared-rules.md`；本 skill 额外要求 QA 问题、草稿、最终上下文和人类文档中的说明性内容以中文为主。
 
 ## 范围
 
@@ -137,7 +133,7 @@ description: 面向中文用户。用于在开发、review、bugfix、测试或�
 - `scope` 是正式第一阶段；`scan` 必须基于已确认且未 stale 的 `.ai/scope/scan-scope.md`。
 - `.ai/facts/` 是后续 AI 逻辑的基准数据源；`summarize`、`qa`、`md`、`html`、`document` 和 `maintain` 都必须先读取相关事实文件。
 - 事实层只记录可观察事实和证据；最终上下文和文档必须区分 Confirmed Facts、Inferred Assumptions、风险和开放问题。
-- 分阶段工作时，在 `.ai/state/ledev-context.md` 维护本 skill 的阶段锚点；不允许跳过未完成阶段向后推进锚点。
+- 分阶段工作时，在 `.ai/state/ledev-context.md` 维护本 skill 的阶段锚点；不允许跳过未完成阶段向后推进锚点。阶段锚点合法值见 `references/modes.md` 的“阶段锚点”段。
 - `md` 必须以当前 `templates/project-context-template.md` 为结构标准；`html` 必须基于当前事实层和符合模板的 `.ai/project-context.md`。
 - `html`、`document` 和 `full` 默认通过 `scripts/render_project_context_html.py` 渲染 HTML；不要把 AI 生成的 HTML 字符串塞进普通占位符。
 - QA 是文件优先、长期维护的项目知识。新问题使用稳定 `QA-###` 编号，过期问题标记 `obsolete`，不删除后复用编号。

@@ -1,30 +1,12 @@
 # Project Context Builder 模式说明
 
-这个 reference 描述 `ledev-context` 各模式的详细行为。所有运行产物以中文为主；命令、路径、状态值、字段名可以保留英文。
+这个 reference 描述 `ledev-context` 各模式的详细行为。通用中文、git、`.ai/`、路径可移植性和多仓库边界规则见 `../../_shared/references/shared-rules.md`。
 
 ## 通用规则
 
 模式名大小写不敏感。对用户展示命令时，优先使用小写模式名。
 
-需要用户输入的短确认 token、短命令和选项必须使用英文，例如 `Y/N`、`yes/no`、`rollback`、`delete/keep`、`continue/stop`、`edit/confirm`。终端说明可以中文解释这些选项的含义，但不要要求用户输入“是/否”“确认/取消”“覆盖/跳过”“删除/保留”等中文短命令。
-
-除 `default` 外，每次运行先做 git 工作树检查：
-
-除非用户特别说明，所有 skill 在目标项目中产生的文件都必须限定在目标项目的 `.ai/` 目录下。运行进度统一写入目标项目 `.ai/state/`，并按 skill 分文件，例如 `.ai/state/ledev-context.md`、`.ai/state/ledev-task.md`。不要在目标项目根目录创建独立的 `state/` 目录。
-
-- 优先运行 `git rev-parse --is-inside-work-tree` 判断目标路径是否在 git 项目内。
-- 多仓库上下文中，目标路径指 `Primary repo`。对 `Related repos` 只做只读检查：路径是否存在、是否 git 工作树、`git status --short`、branch/tag/commit 信息和依赖解析证据；不要在关联仓库写 `.ai/` 或修改 ignore 文件。
-- 如果是 git 项目且允许写文件，读取或创建目标项目根目录的 `.gitignore`，确保包含 `.ai/drafts/`。
-- `.ai/drafts/` 规则已存在时不要重复追加；如果存在等价忽略规则，可以视为已满足。
-- 如果用户要求 dry-run/no-write，只报告需要加入 `.ai/drafts/`，不修改 `.gitignore`。
-- 如果不是 git 项目，不创建 `.gitignore`，只继续当前模式。
-
-路径可移植性：
-
-- `.ai/scope/`、`.ai/facts/`、`.ai/qa/`、`.ai/project-context.md`、`.ai/project-context.html` 和人类文档中禁止写本机绝对路径。
-- 主仓库文件路径使用相对 `Primary repo` 根目录的路径，例如 `cmd/server/main.go`。
-- 关联仓库路径使用相对 `Primary repo` 的仓库路径加仓库内路径，例如 `../funnel:internal/log/parser.go`；也可使用稳定别名格式 `related:funnel:internal/log/parser.go`。
-- 本机绝对路径只允许写入 `.ai/drafts/local-paths.md` 或 `.ai/drafts/` 下临时文件，用于本轮路径映射、恢复或调试；任何正式产物生成前都必须改写为可移植路径。
+除 `default` 外，每次运行先按共享规则做 git 工作树检查；多仓库上下文中，目标路径指 `Primary repo`，`Related repos` 只做只读检查。`ledev-context` 运行时需要确保 `.ai/drafts/` 被 `.gitignore` 或更宽泛规则覆盖；dry-run/no-write 时只报告建议，不修改 `.gitignore`。
 
 可重复执行：
 

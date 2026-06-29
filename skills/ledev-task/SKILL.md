@@ -24,13 +24,6 @@ description: 面向中文用户。用于把代码开发、bug 修复、重构、
 - 维护 task 索引时优先使用脚本：`scripts/generate_task_index.py`。
 - close 前检查 task 完整性优先使用脚本：`scripts/lint_task.py --closing <task-file>`。
 
-## 中文优先规则
-
-- 面向中文用户时，对话说明、task 内容、方案记录、验证结论都以中文为主。
-- task 文件中的说明性内容以中文为主；字段名、状态值、阶段值、类型值、命令、路径、代码符号、测试名称和短确认 token 可以保留英文。
-- task 标题优先使用中文；需要对接英文术语、模块名或便于检索时，可以写成中文为主、英文为辅的双语标题，例如 `导出任务索引链接 / Link Task Index`。
-- 需要用户输入短确认时使用英文 token，例如 `yes/no`、`continue/stop`、`confirm/edit`。
-
 ## 操作入口
 
 遵循共享 operation 规则。`ledev-task` 的 operation 对外称为操作；把 skill 名称后的第一个词视为操作名。操作名大小写不敏感；中文和英文都支持。

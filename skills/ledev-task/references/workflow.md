@@ -26,6 +26,7 @@
 - 展示 task 总数和状态统计。
 - 列出未完成任务。未完成任务指状态不是 `done` 且不是 `obsolete` 的 task，通常包括 `todo`、`in_progress` 和 `blocked`。
 - 询问用户下一步意图，给出简短可执行选项，例如：`continue T###`、`new <需求>`、`restart T###`、`close T###`、`block T###`。
+- 如果识别到唯一 `in_progress` task，把推荐命令实例化为具体编号，例如 `continue T003`，不要只给 `continue T###` 占位符。
 - 不进入需求澄清、方案设计或实现；必须等用户明确下一步操作。
 
 推荐只读命令：
@@ -107,9 +108,12 @@ python3 <ledev-task-skill-dir>/scripts/generate_task_index.py --next-id <target-
 
 执行：
 
-- 记录阻塞原因、已完成工作、需要用户或外部系统提供的信息。
+- 记录阻塞原因、阻塞分类、已完成工作、需要用户或外部系统提供的信息。
+- 阻塞分类使用稳定短语：`waiting-for-user`、`waiting-for-permission`、`waiting-for-dependency`、`waiting-for-environment`、`waiting-for-external-service`、`waiting-for-repo-state`。
+- 在 task 的 `Handoff / Next` 记录最小可行动作，格式优先为：`Next action: <actor> - <specific action> - <expected unblock condition>`。
 - 状态设为 `blocked`，同步索引。
-- 给出最小可行动作，例如回答某个问题、授权某个命令、提供配置或恢复服务。
+- 给出最小可行动作，例如回答某个问题、授权某个命令、提供配置、恢复服务或清理工作树。
+- 解除阻塞后用 `continue T###` 恢复；如果原方案仍有效，从阻塞前阶段继续，否则追加 `restart` 事件并回到相应阶段。
 
 ## 需求确认规则
 

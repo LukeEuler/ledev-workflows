@@ -16,21 +16,14 @@
 
 ## Git Ignore
 
-普通项目中，执行 review 前必须确保本地 review 产物不会进入业务代码 git。检查 `.gitignore`，缺失时追加：
+普通项目中，执行 review 前按共享规则确保本地 review 产物不会进入业务代码 git。本 skill 需要覆盖的具体条目是：
 
 ```gitignore
 .ai/reviews/
 .ai/state/ledev-review.md
 ```
 
-要求：
-
-- 只追加缺失条目，不重复写入。
-- 不为了本规则重排或格式化已有 `.gitignore`。
-- 如果 `.gitignore` 不存在，创建 `.gitignore` 并写入上述条目。
-- 如果项目已有更宽泛规则覆盖这些路径，例如 `.ai/`，不再追加。
-- 当前仓库是 workflow、skill、prompt、agent 配置或类似开发流程仓库，且本次不落盘 review 报告时，跳过 `.gitignore` 修改。
-- 如果用户明确要求把 review 报告纳入版本控制，不执行本规则，并在报告中记录该用户决策。
+当前仓库是 workflow、skill、prompt、agent 配置或类似开发流程仓库，且本次不落盘 review 报告时，跳过 `.gitignore` 修改。如果用户明确要求把 review 报告纳入版本控制，不执行本规则，并在报告中记录该用户决策。
 
 ## 报告内容
 

@@ -4,8 +4,8 @@ set -euo pipefail
 usage() {
   cat <<'USAGE'
 Usage:
-  preflight.sh --range <base> <head>
-  preflight.sh --commit <commit>
+  preflight.sh [--json] --range <base> <head>
+  preflight.sh [--json] --commit <commit>
 
 Checks that a ledev-review target is committed, linear, non-empty, and clean.
 USAGE
@@ -17,8 +17,105 @@ die() {
 }
 
 git_required() {
-  git "$@" 2>/dev/null
+  git "$@"
 }
+
+json_escape() {
+  local value="$1"
+  value="${value//\\/\\\\}"
+  value="${value//\"/\\\"}"
+  value="${value//$'\n'/\\n}"
+  value="${value//$'\r'/\\r}"
+  value="${value//$'\t'/\\t}"
+  printf '"%s"' "$value"
+}
+
+json_array_from_lines() {
+  local lines="$1"
+  local first=1
+
+  printf '['
+  if [[ -n "$lines" ]]; then
+    while IFS= read -r line; do
+      if [[ "$first" -eq 0 ]]; then
+        printf ','
+      fi
+      json_escape "$line"
+      first=0
+    done <<<"$lines"
+  fi
+  printf ']'
+}
+
+changed_line_count() {
+  local diff_expression="$1"
+  local added deleted total
+
+  total=0
+  while IFS=$'\t' read -r added deleted _path; do
+    [[ "$added" =~ ^[0-9]+$ ]] || added=0
+    [[ "$deleted" =~ ^[0-9]+$ ]] || deleted=0
+    total=$((total + added + deleted))
+  done < <(git diff --numstat "$diff_expression")
+  printf '%s\n' "$total"
+}
+
+warn_large_range() {
+  local commit_count="$1"
+  local diff_expression="$2"
+  local changed_lines
+
+  changed_lines="$(changed_line_count "$diff_expression")"
+  if [[ "$commit_count" -ge 30 || "$changed_lines" -ge 1000 ]]; then
+    printf 'WARNING: review range is large (%s commit(s), %s changed line(s)); consider splitting the review.\n' \
+      "$commit_count" "$changed_lines" >&2
+  fi
+}
+
+print_result_text() {
+  printf 'Mode: %s\n' "$result_mode"
+  printf 'Base ref: %s\n' "$base_ref"
+  printf 'Base commit: %s\n' "$base_commit"
+  printf 'Head ref: %s\n' "$head_ref"
+  printf 'Head commit: %s\n' "$head_commit"
+  printf 'Diff expression: %s\n' "$diff_expression"
+  printf 'Commit count: %s\n' "$commit_count"
+  printf 'Working tree clean: yes\n'
+  printf 'Contains merge commit: no\n'
+  printf '\nCommits:\n%s\n' "$commits"
+  printf '\nDiff stat:\n'
+  git diff --stat "$diff_expression"
+}
+
+print_result_json() {
+  local diff_stat
+
+  diff_stat="$(git diff --stat "$diff_expression")"
+  printf '{'
+  printf '"mode":'; json_escape "$result_mode"; printf ','
+  printf '"baseRef":'; json_escape "$base_ref"; printf ','
+  printf '"baseCommit":'; json_escape "$base_commit"; printf ','
+  printf '"headRef":'; json_escape "$head_ref"; printf ','
+  printf '"headCommit":'; json_escape "$head_commit"; printf ','
+  printf '"diffExpression":'; json_escape "$diff_expression"; printf ','
+  printf '"commitCount":%s,' "$commit_count"
+  printf '"workingTreeClean":true,'
+  printf '"containsMergeCommit":false,'
+  printf '"commits":'; json_array_from_lines "$commits"; printf ','
+  printf '"diffStat":'; json_array_from_lines "$diff_stat"
+  printf '}\n'
+}
+
+if [[ $# -eq 0 ]]; then
+  usage >&2
+  exit 2
+fi
+
+json_output=0
+if [[ "${1:-}" == "--json" ]]; then
+  json_output=1
+  shift
+fi
 
 if [[ $# -eq 0 ]]; then
   usage >&2
@@ -69,19 +166,14 @@ case "$mode" in
 
     commit_count="$(git rev-list --count "${base_commit}..${head_commit}")"
     diff_expression="${base_commit}..${head_commit}"
+    result_mode="committed-linear-range"
 
-    printf 'Mode: committed-linear-range\n'
-    printf 'Base ref: %s\n' "$base_ref"
-    printf 'Base commit: %s\n' "$base_commit"
-    printf 'Head ref: %s\n' "$head_ref"
-    printf 'Head commit: %s\n' "$head_commit"
-    printf 'Diff expression: %s\n' "$diff_expression"
-    printf 'Commit count: %s\n' "$commit_count"
-    printf 'Working tree clean: yes\n'
-    printf 'Contains merge commit: no\n'
-    printf '\nCommits:\n%s\n' "$commits"
-    printf '\nDiff stat:\n'
-    git diff --stat "$diff_expression"
+    warn_large_range "$commit_count" "$diff_expression"
+    if [[ "$json_output" -eq 1 ]]; then
+      print_result_json
+    else
+      print_result_text
+    fi
     ;;
 
   --commit)
@@ -99,19 +191,15 @@ case "$mode" in
     commits="$(git log --reverse --oneline "${base_commit}..${head_commit}")"
     commit_count="1"
     diff_expression="${base_commit}..${head_commit}"
+    result_mode="single-commit"
 
-    printf 'Mode: single-commit\n'
-    printf 'Base ref: %s^\n' "$head_ref"
-    printf 'Base commit: %s\n' "$base_commit"
-    printf 'Head ref: %s\n' "$head_ref"
-    printf 'Head commit: %s\n' "$head_commit"
-    printf 'Diff expression: %s\n' "$diff_expression"
-    printf 'Commit count: %s\n' "$commit_count"
-    printf 'Working tree clean: yes\n'
-    printf 'Contains merge commit: no\n'
-    printf '\nCommits:\n%s\n' "$commits"
-    printf '\nDiff stat:\n'
-    git diff --stat "$diff_expression"
+    base_ref="${head_ref}^"
+    warn_large_range "$commit_count" "$diff_expression"
+    if [[ "$json_output" -eq 1 ]]; then
+      print_result_json
+    else
+      print_result_text
+    fi
     ;;
 
   -h|--help)

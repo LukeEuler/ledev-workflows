@@ -1,10 +1,11 @@
 [返回任务索引](./index.md)
+<!-- ledev-task-template: light -->
 
 # T000 中文任务标题 / Optional English Title
 
 - Type: chore
 - Status: todo
-- Phase: requirements_confirmed
+- Phase: requirements_draft
 - Created: YYYY-MM-DD
 - Updated: YYYY-MM-DD
 
