@@ -13,13 +13,16 @@ description: 面向中文用户。用于把代码开发、bug 修复、重构、
 
 ## 读取 Reference
 
+- 跨 LEDev skill 的中文优先、git、`.ai/`、路径可移植性和多仓库默认边界：读 `../_shared/references/shared-rules.md`。
 - task 字段、编号、索引和状态文件规则：读 `references/task-files.md`。
 - 默认入口、新建、继续、重启、收尾等操作细节：读 `references/workflow.md`。
 - 写文件时使用模板：
   - `templates/task-template.md`
+  - `templates/task-light-template.md`
   - `templates/task-index-template.md`
   - `templates/ledev-task-state-template.md`
 - 维护 task 索引时优先使用脚本：`scripts/generate_task_index.py`。
+- close 前检查 task 完整性优先使用脚本：`scripts/lint_task.py --closing <task-file>`。
 
 ## 中文优先规则
 
@@ -28,9 +31,9 @@ description: 面向中文用户。用于把代码开发、bug 修复、重构、
 - task 标题优先使用中文；需要对接英文术语、模块名或便于检索时，可以写成中文为主、英文为辅的双语标题，例如 `导出任务索引链接 / Link Task Index`。
 - 需要用户输入短确认时使用英文 token，例如 `yes/no`、`continue/stop`、`confirm/edit`。
 
-## 操作语义
+## 操作入口
 
-把 skill 名称后的第一个词视为操作名。操作名大小写不敏感；中文和英文都支持。
+遵循共享 operation 规则。`ledev-task` 的 operation 对外称为操作；把 skill 名称后的第一个词视为操作名。操作名大小写不敏感；中文和英文都支持。
 
 - `default`：当用户只输入 `$ledev-task` 且没有其他参数时，读取 task 状态，展示任务统计和未完成任务，并询问用户下一步意图；默认不写文件，除非索引缺失或 stale 且用户允许刷新。
 - `new` / `新建`：为新的开发、修复、重构或工具生成工作启动需求澄清、方案选择和最终确认流程；确认前只允许创建或更新 task 草案，不允许推进实现。
@@ -81,6 +84,7 @@ description: 面向中文用户。用于把代码开发、bug 修复、重构、
 - 每个 task 文件第一行必须写入返回索引链接：`[返回任务索引](./index.md)`，指向同目录下的 `.ai/tasks/index.md`。
 - task 标题和内容说明以中文为主，必要时标题可双语且英文为辅。
 - 每个 task 必须记录类型、当前阶段、用户原始诉求、需求理解、需求确认、开放问题、范围、影响面、方案选项、方案决策、最终确认、实现记录、验证结果、剩余风险和历史事件。
+- 低风险 `chore`、`docs`、`tooling`、`config` task 可以使用 `templates/task-light-template.md`，但仍必须记录用户诉求、需求理解、范围、方案、实现活动、验证结果和后续事项。
 - 每个 task 必须有 `Type`。优先使用 `feature`（开发）或 `bugfix`（修复 bug）；其他常见类型见 `references/task-files.md`。
 - `restart` 不应删除历史。追加重启事件，说明为什么上一阶段不适用、保留哪些产物、废弃哪些假设。
 - `.ai/tasks/index.md` 是状态汇总，不替代单个 task 详情。更新 task 状态后同步更新索引；索引优先由 `python3 <skill>/scripts/generate_task_index.py <target-project-root>` 生成，确保 Tasks 表格里的 task id 和 title 都链接到对应 task 文件。
@@ -96,6 +100,7 @@ description: 面向中文用户。用于把代码开发、bug 修复、重构、
 ### 验证与收尾
 
 - 每个 task 收尾前必须记录验证：命令、结果、失败原因或未验证原因。
+- close 前优先运行 `scripts/lint_task.py --closing <task-file>`；若脚本不可用，按 `references/task-files.md` 手工检查必填字段、实现记录和验证记录。
 - 低风险任务可运行聚焦验证；跨模块、共享契约或修复 bug 时，优先补充或运行回归测试。
 - 测试策略复杂、用户明确要求测试治理，或需要独立验证阶段时，交接给 `ledev-test`，但 task 内仍要记录交接和结果。
 - 只有实现、验证和收尾记录完整后，才把 task 标记为 `done`。

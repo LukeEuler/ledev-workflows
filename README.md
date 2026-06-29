@@ -76,6 +76,14 @@ skills/ledev-context/rules/<language>.md
 - `Human Notes`：人主动补充的项目事实、团队约定、业务规则。
 - `Corrections`：当 AI 理解错时，记录纠正内容，避免后续重复犯错。
 
+### Skill 间契约
+
+- `ledev-context` 产出 `.ai/scope/scan-scope.md`、`.ai/facts/`、`.ai/qa/project-qa.md`、`.ai/project-context.md` 和 `.ai/state/ledev-context.md`，供 task、review、test 和 tool 优先读取。
+- `ledev-task` 产出 `.ai/tasks/T###-*.md`、`.ai/tasks/index.md` 和 `.ai/state/ledev-task.md`。其他 skill 读取 task 的目标、范围、方案、实现记录、验证记录和 `Handoff / Next`，用于判断用户意图、验证范围和后续工作。
+- `ledev-review` 产出 `.ai/reviews/` 和 `.ai/state/ledev-review.md`。review 读取 context facts 和相关 task；如果发现需要修复的问题，转交给 task 工作流，不直接改代码。
+- `.ai/state/<skill>.md` 只记录运行锚点，不替代长期事实、task、review 报告或 QA 文档。
+- 共享协议见 `skills/_shared/references/shared-rules.md`：operation 解析、中文优先、git 检查、`.ai/` 写入、路径可移植性和多仓库默认边界。
+
 ---
 
 ## English
@@ -153,3 +161,11 @@ When multiple AI agents, skills, or phases collaborate, use the `.ai/state/` dir
 
 - `Human Notes`: user-provided project facts, team conventions, and business rules.
 - `Corrections`: explicit corrections when AI misunderstood the project, so future work does not repeat the same mistake.
+
+### Cross-Skill Contracts
+
+- `ledev-context` writes `.ai/scope/scan-scope.md`, `.ai/facts/`, `.ai/qa/project-qa.md`, `.ai/project-context.md`, and `.ai/state/ledev-context.md` for task, review, test, and tool workflows to read first.
+- `ledev-task` writes `.ai/tasks/T###-*.md`, `.ai/tasks/index.md`, and `.ai/state/ledev-task.md`. Other skills read task goals, scope, selected plan, implementation log, validation log, and `Handoff / Next` to understand intent and follow-up work.
+- `ledev-review` writes `.ai/reviews/` and `.ai/state/ledev-review.md`. Review reads context facts and related tasks; when fixes are needed, it hands them to the task workflow instead of editing code directly.
+- `.ai/state/<skill>.md` stores runtime anchors only; it does not replace long-lived facts, tasks, review reports, or QA documents.
+- Shared protocol lives in `skills/_shared/references/shared-rules.md`: operation parsing, Chinese-first output, git checks, `.ai/` writes, path portability, and multi-repo boundaries.

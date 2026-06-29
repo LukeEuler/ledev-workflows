@@ -13,6 +13,7 @@ description: 面向中文用户。用于对 Git 项目中已经 commit 的线性
 
 ## 读取 Reference
 
+- 跨 LEDev skill 的中文优先、git、`.ai/`、路径可移植性和多仓库默认边界：读 `../_shared/references/shared-rules.md`。
 - Git 范围、合法性检查和拒绝条件：读 `references/git-range.md`。
 - findings 严重级别、证据和输出要求：读 `references/findings.md`。
 - 用户意图识别和沟通规则：读 `references/intent.md`。
@@ -22,11 +23,15 @@ description: 面向中文用户。用于对 Git 项目中已经 commit 的线性
   - Go：读 `rules/golang.md`。
   - Java：读 `rules/java.md`。
   - JavaScript / TypeScript：读 `rules/javascript.md`。
+  - Python：读 `rules/python.md`。
 - 写报告或状态时使用：
   - `templates/review-report-template.md`
   - `templates/review-state-template.md`
+- Git 范围预检优先使用脚本：`scripts/preflight.sh`。
 
 ## 输入边界
+
+`ledev-review` 遵循共享 operation 规则。用户显式提供 `commit <B>` 时归一化为 single-commit；其他 `A..B`、`from A to B` 或 `base to head` 输入归一化为 committed-linear-range。
 
 只接受以下 review 目标：
 
@@ -47,9 +52,10 @@ description: 面向中文用户。用于对 Git 项目中已经 commit 的线性
 
 1. 建立 Git 范围。
    - 读取 `references/git-range.md`。
-   - 运行必要的只读 Git 检查。
    - 把用户输入解析成 `committed-linear-range` 或 `single-commit`。
-   - 检查工作区干净、revision 存在、范围线性、无 merge commit、范围非空。
+   - 优先运行 `scripts/preflight.sh --range <base> <head>` 或 `scripts/preflight.sh --commit <commit>` 完成只读预检。
+   - 如果脚本不可用，按 `references/git-range.md` 手工检查工作区干净、revision 存在、范围线性、无 merge commit、范围非空。
+   - 将预检输出的 mode、base/head commit、diff expression、commit list 和 diff stat 用作报告范围元数据。
    - 失败时停止 review，给出最小修复命令提示。
 
 2. 建立上下文和意图。

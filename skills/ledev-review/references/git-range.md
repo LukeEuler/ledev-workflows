@@ -44,7 +44,14 @@ git log --reverse --oneline B^..B
 
 ## 必要检查
 
-在 review 前运行只读检查：
+在 review 前优先运行 skill 脚本：
+
+```sh
+scripts/preflight.sh --range A B
+scripts/preflight.sh --commit B
+```
+
+脚本会检查工作区干净、revision 可解析、正向线性、范围非空、无 merge commit，并输出报告范围元数据和 diff stat。脚本不可用时，手工运行只读检查：
 
 ```sh
 git rev-parse --is-inside-work-tree
@@ -124,7 +131,7 @@ review main..feature
 
 ## 报告元数据
 
-每次 review 必须记录：
+每次 review 必须记录，优先直接引用 `scripts/preflight.sh` 输出：
 
 ```text
 审查范围:

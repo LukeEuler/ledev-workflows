@@ -101,9 +101,20 @@ task 类型使用稳定英文值，中文说明可以写在旁边。`Type` 是�
 
 一个 task 只选择一个主类型。若任务横跨多类，选择驱动本次成功标准的类型，并在 `Impact` 或 `Decision Log` 中说明次要影响。
 
-## task 必填内容
+## task 模板选择
 
-每个 task 文件必须包含：
+默认使用 `templates/task-template.md`。满足以下全部条件时，可以使用 `templates/task-light-template.md`：
+
+- 类型是 `chore`、`docs`、`tooling`、`config` 或其他低风险维护类任务。
+- 需求明确，影响面小。
+- 不改变公共 API、数据格式、权限、安全边界、迁移逻辑或跨模块契约。
+- 不需要多方案取舍或复杂回滚计划。
+
+如果轻量 task 执行中发现影响面扩大、需求不清或存在高风险，必须切回完整模板结构，保留已有记录并补齐缺失字段。
+
+## 完整 task 必填内容
+
+使用完整模板时，task 文件必须包含：
 
 - 第一行返回索引链接：`[返回任务索引](./index.md)`。
 - `Task`：编号和标题。
@@ -124,6 +135,29 @@ task 类型使用稳定英文值，中文说明可以写在旁边。`Type` 是�
 - `Implementation Log`：实际改动记录。
 - `Validation Log`：命令、结果、失败或未执行原因。
 - `Handoff / Next`：交接给 `ledev-test`、后续事项或阻塞项。
+
+## 轻量 task 必填内容
+
+使用轻量模板时，task 文件必须包含：
+
+- 第一行返回索引链接：`[返回任务索引](./index.md)`。
+- `Task`：编号和标题。
+- `Type`、`Status`、`Phase`、`Created`、`Updated`。
+- `User Request`：用户原始诉求。
+- `Requirement Summary`：目标、交付物、成功标准和关键假设。
+- `Scope`：会改什么、不会改什么、风险等级和多仓库适用性。
+- `Plan`：采用方案、预计修改位置、验证计划和剩余风险。
+- `Activity Log`：需求确认、实现和重要决策的时间线。
+- `Validation Log`：命令、结果、失败或未执行原因。
+- `Handoff / Next`：后续事项或阻塞项。
+
+close 前优先运行：
+
+```sh
+python3 <ledev-task-skill-dir>/scripts/lint_task.py --closing <task-file>
+```
+
+脚本失败时不要标记 `done`，先补齐缺失字段、实现/活动记录或验证记录。
 
 ## 索引规则
 

@@ -55,6 +55,7 @@ description: 面向中文用户。用于在开发、review、bugfix、测试或�
 
 只读取当前模式需要的 reference：
 
+- 跨 LEDev skill 的中文优先、git、`.ai/`、路径可移植性和多仓库默认边界：读 `../_shared/references/shared-rules.md`。
 - 模式行为、阶段锚点、草稿落盘、输出规则和工作流细节：读 `references/modes.md`。
 - scope 模式、扫描范围确认、`SCOPE-###` 问题和复用规则：读 `references/scope.md`。
 - 事实层目录、采集规则、证据要求和事实模板：读 `references/facts.md`。
@@ -87,9 +88,9 @@ description: 面向中文用户。用于在开发、review、bugfix、测试或�
 - HTML/CSS/布局调整必须先修改 `templates/project-context-html-template.html`，再重新渲染；不要只修改单次生成产物。
 - 最终 HTML 固定 11 个主章节，区分事实、推断、风险和开放问题；生成判断需要内部依据，但 HTML 不展示证据路径、证据索引或内部来源标签。
 
-## 调用模式
+## 操作入口
 
-把 skill 名称后的第一个词视为模式名。模式名大小写不敏感；面向用户展示命令时优先用小写。
+遵循共享 operation 规则。`ledev-context` 的 operation 对外称为 mode；把 skill 名称后的第一个词视为 mode。mode 大小写不敏感；面向用户展示命令时优先用小写。
 
 推荐顺序：
 
@@ -130,59 +131,16 @@ description: 面向中文用户。用于在开发、review、bugfix、测试或�
 - `$ledev-context maintain`
 - `$ledev-context full`
 
-## 硬性规则
+## 核心硬性规则
 
-### 启动与阶段
+- 用户显式指定某个模式时，本次运行必须执行该模式；不要因为状态锚点已在后续阶段就自动跳过或改跑下一阶段。
+- `scope` 是正式第一阶段；`scan` 必须基于已确认且未 stale 的 `.ai/scope/scan-scope.md`。
+- `.ai/facts/` 是后续 AI 逻辑的基准数据源；`summarize`、`qa`、`md`、`html`、`document` 和 `maintain` 都必须先读取相关事实文件。
+- 事实层只记录可观察事实和证据；最终上下文和文档必须区分 Confirmed Facts、Inferred Assumptions、风险和开放问题。
+- 分阶段工作时，在 `.ai/state/ledev-context.md` 维护本 skill 的阶段锚点；不允许跳过未完成阶段向后推进锚点。
+- `md` 必须以当前 `templates/project-context-template.md` 为结构标准；`html` 必须基于当前事实层和符合模板的 `.ai/project-context.md`。
+- `html`、`document` 和 `full` 默认通过 `scripts/render_project_context_html.py` 渲染 HTML；不要把 AI 生成的 HTML 字符串塞进普通占位符。
+- QA 是文件优先、长期维护的项目知识。新问题使用稳定 `QA-###` 编号，过期问题标记 `obsolete`，不删除后复用编号。
+- 刷新和维护时必须保留 `Human Notes` 和 `Corrections`；人工补充和代码事实冲突时，记录冲突并向用户确认。
 
-- 除 `default` 外，所有模式启动时先判断目标路径是否在 git 工作树内：优先运行 `git rev-parse --is-inside-work-tree`。
-- 多仓库上下文中，启动检查以 `Primary repo` 为目标项目；对每个 `Related repo` 只做只读存在性、git 状态和版本信息检查，默认不写入关联仓库。
-- `scope` 是正式第一阶段；不再使用 `plan` 作为阶段锚点。裸调用 `default` 只说明模式和推荐下一步。
-- 用户显式指定某个模式时，必须按该模式执行；不要因为当前阶段锚点已经在后续阶段，就自动跳到“下一步”或只执行后续阶段。下一步建议只作为执行完成后的提示，不改变本次用户指定的命令。
-- `scan` 必须先读取 `.ai/scope/scan-scope.md`。如果 scope 缺失、未确认或明显 stale，先运行或更新 `scope`。
-- `.ai/facts/` 是后续 AI 逻辑的基准数据源；`summarize`、`qa`、`md`、`html`、`document`、`maintain` 都必须先读取相关事实文件。
-- 分阶段工作时，在 `.ai/state/ledev-context.md` 维护 `ledev-context` 自己的阶段锚点。其他 skill 必须写各自的 `.ai/state/<skill-name>.md`，不要共用一个状态文件。
-- 不允许跳过未完成阶段向后推进锚点。
-- 显式重复执行当前锚点之前的阶段时，执行成功后必须把 `.ai/state/ledev-context.md` 的锚点前置到本次完成阶段，并把依赖后续产物标记为 stale；不要继续保留较新的锚点。
-- 每个非 `default` 模式完成后，都要报告本次完成的阶段、当前锚点、受影响产物，并给出推荐下一步命令。每条推荐命令后必须附一句简短说明，说明它会做什么。推荐下一步不能替代用户下一次显式输入。
-- 当推荐 `$ledev-context md` 时，必须同时提示 `$ledev-context document`：`md` 只生成或刷新 Markdown 上下文，`document` 会组合执行 Markdown 和 HTML 文档生成。
-
-### 事实与推断
-
-- 最终上下文和文档必须以事实为主，明确区分 Confirmed Facts 和 Inferred Assumptions。
-- 事实层只记录可观察事实和证据，不写业务推理、价值判断或未经验证的架构解释。
-- 每条重要事实必须有证据来源，优先使用文件路径、符号名、命令输出或配置项；能定位行号时写行号。
-- 长期产物中的路径必须使用可移植路径：主仓库内使用相对 `Primary repo` 根目录的路径；关联仓库使用相对 `Primary repo` 的相对路径加仓库内路径，例如 `../funnel:cmd/server/main.go` 或 `related:funnel:cmd/server/main.go`。不要写 `/Users/...`、`/home/...`、`C:\...` 这类本机绝对路径。
-- 如果确实需要记录本机绝对路径用于本轮恢复、调试或路径映射，只能写入 `.ai/drafts/local-paths.md` 或 `.ai/drafts/` 下其他临时文件；提升到正式上下文、事实层、人类文档或 HTML 前必须改写为可移植路径。
-- dirty files 默认视为用户改动，除非明确是当前任务创建的。
-- 运行脚本产生的解释器缓存或工具缓存如果已被 git ignore 覆盖，例如 `__pycache__/`、`*.py[cod]`，不要主动查询或清理；只处理会进入 `git status`、影响事实层或影响正式产物的文件。
-
-### 写入与临时文件
-
-- 除非用户特别说明，所有 skill 在目标项目中产生的文件都必须限定在目标项目的 `.ai/` 目录下；运行进度写入 `.ai/state/<skill-name>.md`，长期知识写入 `.ai/facts/`、`.ai/qa/`、`.ai/project-context.md` 等对应子路径。
-- 多仓库上下文的 `.ai/` 产物默认只写入 `Primary repo`。不要为了记录事实在 `Related repos` 中创建 `.ai/`、修改 `.gitignore` 或写状态文件，除非用户明确把该关联仓库切换为独立目标项目。
-- 如果目标路径是 git 项目且允许写文件，必须确保 `.gitignore` 包含 `.ai/drafts/`；如果 `.gitignore` 不存在则创建。如果用户要求 dry-run/no-write，只报告需要加入该规则。
-- 显式 `scan` 模式写 `.ai/facts/`；显式 `summarize` 模式可以写 `.ai/drafts/` 草稿，除非用户要求 dry-run/no-write。
-- QA 写入长期文档 `.ai/qa/project-qa.md`，除非用户要求 dry-run/no-write。
-- `.ai/drafts/` 是临时恢复数据，不是长期知识库。`md` 成功提升后，删除已提升的 draft 文件；如果 draft 中存在未提升到正式文档、事实层或长期 QA 的人工补充，先提升或向用户确认后再删除。
-- 写 `.ai/project-context.md`、`.ai/project-context.html`、`.ai/state/ledev-context.md` 或人类文档前，必须说明目标文件，除非用户已经明确要求写入。
-- `md` 写入或校验时必须以当前 `templates/project-context-template.md` 为结构标准。即使代码事实没有变化，只要现有 `.ai/project-context.md` 缺少当前模板要求的章节、表格、字段或生成规则，也视为 stale，必须刷新 Markdown 后再进入 HTML。
-- `html` 写入前必须检查 `.ai/project-context.md` 是否存在、基于当前事实层，并且符合当前 Markdown 模板结构；如果缺失、stale 或缺少 HTML 所需的数据源章节，先运行或要求运行 `md`。如果 `.ai/project-context.html` 已存在，渲染脚本必须先自动备份旧版本到 `.ai/drafts/project-context.<timestamp>.html`，再覆盖正式 HTML；运行完成后告诉用户可以用 `rollback` 回退，并列出可回退版本（时间倒序）。
-- `rollback` 必须先列出 `.ai/drafts/project-context.<timestamp>.html` 中可用备份，按时间倒序展示，让用户选择一个版本后再恢复；不要在没有用户选择的情况下覆盖 `.ai/project-context.html`。
-
-### 维护与冲突
-
-- 刷新和维护时必须保留 `Human Notes` 和 `Corrections`。
-- 如果人工补充和代码事实冲突，记录冲突并向用户确认，不要直接覆盖。
-
-## QA 硬性规则
-
-- QA 是文件优先、长期维护的项目知识。只要有问题，先写入 `.ai/qa/project-qa.md`，再提示用户回答。
-- 创建新问题前先读已有 `.ai/qa/project-qa.md`；已有答案作为人工项目知识使用，除非它和已验证代码事实冲突。
-- 如果已有 QA 和当前理解冲突，追加新的 follow-up 问题，不覆盖旧答案。
-- 终端 QA 输出保持简短：QA 文件路径、问题编号、短标题、回答方式。
-- 每个问题必须有稳定编号，例如 `QA-001`、`QA-002`。
-- 追加问题时，从当前 QA 文档中最大编号继续递增。
-- 问题展示给用户后不允许重编号。
-- 过期问题标记 `Status: obsolete`，不要删除后复用编号。
-- 接受 `QA-001: ...` 这类 inline 回答；允许写文件时合并回 QA 文档。
-- QA 文档是最终上下文和人类文档的长期补充；可以把简洁结论提升到 `.ai/project-context.md` 或人类文档，但必须保留完整 QA 历史。
+详细启动检查、写入规则、阶段锚点、QA 合并、rollback、HTML 生成和 maintain 流程见对应 reference；不要在 SKILL.md 中重复展开。

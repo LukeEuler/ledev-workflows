@@ -65,6 +65,7 @@ python3 <ledev-task-skill-dir>/scripts/generate_task_index.py --next-id <target-
 低风险例外：
 
 - 对范围很小、需求明确、不会影响公共 API、数据格式、权限、安全边界或跨模块契约的任务，可以压缩提问轮次。
+- 对 `chore`、`docs`、`tooling`、`config` 等低风险维护任务，可以使用 `templates/task-light-template.md`。如果执行中发现风险升高，切回完整模板并补齐缺失字段。
 - 即使压缩流程，也必须输出确认摘要和验证计划，并在用户确认后再实现。
 - 用户明确要求“直接实现”时，可以减少问题数量，但仍必须记录关键假设；如果发现高风险或歧义，必须暂停确认。
 
@@ -96,6 +97,7 @@ python3 <ledev-task-skill-dir>/scripts/generate_task_index.py --next-id <target-
 执行：
 
 - 确认实现记录和验证记录完整。
+- 优先运行 `python3 <ledev-task-skill-dir>/scripts/lint_task.py --closing <task-file>`；脚本失败时，先补齐 task 记录或说明不能 close 的原因。
 - 若未运行验证，必须说明原因和剩余风险；通常不要标记 `done`。
 - 更新 task 状态为 `done`，同步索引和 `.ai/state/ledev-task.md`。
 - 同步索引时优先运行 `scripts/generate_task_index.py`，确保 `## Tasks` 表格里的 task id 和 title 都链接到对应 task 文件。
