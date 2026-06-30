@@ -42,10 +42,10 @@ python3 <ledev-task-skill-dir>/scripts/generate_task_index.py --next-id <target-
 ```
 
 - 如果脚本不可用，必须按上述历史来源手工扫描并取最大值加一；手工扫描结果要写入 task 的 `Decision Log` 或本次对话记录。
-- 文件名使用 `T###-短标题.md`。短标题用小写 hyphen-case 或中文短词均可，避免空格和过长描述。
+- 文件名使用 `T###-english-short-title.md`。短标题必须是英文小写 hyphen-case，例如 `export-csv`、`fix-login-timeout`；禁止使用中文、空格、下划线或过长描述。
 - 每个 task 文件第一行必须提供返回索引的相对链接：`[返回任务索引](./index.md)`，方便从 task 详情跳回 `.ai/tasks/index.md`。
 - 每个 task 文件第二行必须提供模板 marker：完整模板写 `<!-- ledev-task-template: full -->`，轻量模板写 `<!-- ledev-task-template: light -->`。
-- task 标题优先中文；需要保留英文模块名、概念或检索关键词时，可以使用中文为主、英文为辅的双语标题，例如 `更新任务索引链接 / Link Task Index`。
+- task 文件主标题必须使用中文 / 英文双语格式：`# T### 中文任务标题 / English Task Title`。中文标题在前，英文标题在后，中间固定使用 ` / ` 分隔，例如 `# T001 更新任务索引链接 / Update Task Index Links`。
 - task 文件中的说明性内容以中文为主；字段名、状态值、阶段值、类型值、命令、路径、代码符号、测试名称和短确认 token 可以保留英文。
 
 ## task 状态
@@ -169,12 +169,12 @@ python3 <ledev-task-skill-dir>/scripts/lint_task.py --closing <task-file>
 - task 总数。
 - 各状态数量。
 - task 列表：编号、类型、标题、状态。
-- `## Tasks` 表格中，`Task` 列的 task id 必须链接到对应 task 文件，例如 `[T001](./T001-导出CSV.md)`。
-- `## Tasks` 表格中，`Title` 列的标题也必须链接到同一个 task 文件，例如 `[导出 CSV](./T001-导出CSV.md)`。
+- `## Tasks` 表格中，`Task` 列的 task id 必须链接到对应 task 文件，例如 `[T001](./T001-export-csv.md)`。
+- `## Tasks` 表格中，`Title` 列的标题也必须链接到同一个 task 文件，例如 `[导出 CSV / Export CSV](./T001-export-csv.md)`。
 - `## Tasks` 表格中的 `Status` 列使用常见彩色状态图标展示；状态统计区必须保留“图标 + 原始状态值”的映射，方便识别。
 - 默认状态图标：`⬜` = `todo`，`🔄` = `in_progress`，`⛔` = `blocked`，`✅` = `done`，`🗑️` = `obsolete`。
 - 状态图标必须是纯文本图标，不使用 HTML 标签或内联样式。
-- task 文件路径使用相对 `index.md` 的链接，优先使用 `./T###-短标题.md`；链接目标必须和实际文件名一致。
+- task 文件路径使用相对 `index.md` 的链接，优先使用 `./T###-english-short-title.md`；链接目标必须和实际英文文件名一致。
 
 每次创建、改状态、重启或完成 task 后都要同步更新索引。优先运行：
 

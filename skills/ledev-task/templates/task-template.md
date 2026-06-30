@@ -1,7 +1,7 @@
 [返回任务索引](./index.md)
 <!-- ledev-task-template: full -->
 
-# T000 中文任务标题 / Optional English Title
+# T000 中文任务标题 / English Task Title
 
 - Type: feature
 - Status: todo

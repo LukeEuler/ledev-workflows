@@ -11,6 +11,8 @@ from pathlib import Path
 
 FIELD_RE = re.compile(r"^- ([A-Za-z][A-Za-z ]*):\s*(.*)$")
 TEMPLATE_MARKER_RE = re.compile(r"^<!--\s*ledev-task-template:\s*(full|light)\s*-->\s*$")
+TASK_FILENAME_RE = re.compile(r"^(T\d{3})-[a-z0-9]+(?:-[a-z0-9]+)*\.md$")
+TASK_HEADING_RE = re.compile(r"^#\s+(T\d{3})\s+(.+?)\s+/\s+([A-Za-z][A-Za-z0-9 .:_/()'&+-]*?)\s*$")
 PLACEHOLDER_RE = re.compile(
     r"(待记录|待总结|待确认|待提出|待实现|待验证|待补充|\bTODO\b|\bTBD\b)",
 )
@@ -96,6 +98,16 @@ def template_kind(text: str) -> str | None:
     return match.group(1)
 
 
+def task_heading(text: str) -> tuple[str, str, str] | None:
+    for line in text.splitlines():
+        if line.startswith("# "):
+            match = TASK_HEADING_RE.match(line.strip())
+            if match:
+                return match.group(1), match.group(2).strip(), match.group(3).strip()
+            return None
+    return None
+
+
 def has_placeholder(value: str) -> bool:
     return bool(PLACEHOLDER_RE.search(value))
 
@@ -117,12 +129,22 @@ def main() -> int:
     text = read_text(task_path)
     problems: list[str] = []
 
+    filename_match = TASK_FILENAME_RE.match(task_path.name)
+    if not filename_match:
+        problems.append("task filename must be T###-english-hyphen-title.md")
+
     if not text.startswith("[返回任务索引](./index.md)"):
         problems.append("missing first-line index link")
 
     kind = template_kind(text)
     if kind is None:
         problems.append("missing template marker: <!-- ledev-task-template: full|light -->")
+
+    heading = task_heading(text)
+    if heading is None:
+        problems.append("task heading must be: # T### 中文任务标题 / English Task Title")
+    elif filename_match and heading[0] != filename_match.group(1):
+        problems.append("task heading id must match filename id")
 
     field_map = fields(text)
     for name in REQUIRED_FIELDS:
