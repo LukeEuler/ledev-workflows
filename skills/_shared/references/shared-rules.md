@@ -11,6 +11,7 @@
 ## 操作入口
 
 - LEDev skill 统一把 skill 名称后的第一个 token 视为操作入口（operation）。
+- Codex 直接调用通常写作 `$ledev-task new ...`；Claude Code 直接调用写作 `/ledev-task new ...`。两者都把 skill 名称后的第一个 token 作为 operation。
 - 操作入口大小写不敏感；面向用户展示命令时优先使用小写英文 token。
 - 各 skill 可以保留领域别名：`ledev-context` 的 operation 可称为 mode，`ledev-task` 可称为 op/action，`ledev-review` 的 operation 之后通常跟 review range 或 commit。
 - 不要因为 `.ai/state/` 中已有后续锚点而改写用户显式指定的 operation；本次运行必须服务于用户指定入口。

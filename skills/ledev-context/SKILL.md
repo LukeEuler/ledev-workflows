@@ -86,7 +86,7 @@ description: 面向中文用户。用于在开发、review、bugfix、测试或�
 
 ## 操作入口
 
-遵循共享 operation 规则。`ledev-context` 的 operation 对外称为 mode；把 skill 名称后的第一个词视为 mode。mode 大小写不敏感；面向用户展示命令时优先用小写。
+遵循共享 operation 规则。`ledev-context` 的 operation 对外称为 mode；把 skill 名称后的第一个词视为 mode。Codex 示例使用 `$ledev-context`，Claude Code 示例使用 `/ledev-context`。mode 大小写不敏感；面向用户展示命令时优先用小写。
 
 推荐顺序：
 
@@ -115,17 +115,17 @@ description: 面向中文用户。用于在开发、review、bugfix、测试或�
 
 示例：
 
-- `$ledev-context`
-- `$ledev-context scope`
-- `$ledev-context scan`
-- `$ledev-context summarize`
-- `$ledev-context qa`
-- `$ledev-context md`
-- `$ledev-context html`
-- `$ledev-context rollback`
-- `$ledev-context document`
-- `$ledev-context maintain`
-- `$ledev-context full`
+- Codex：`$ledev-context scope`
+- Claude Code：`/ledev-context scope`
+- `ledev-context scan`
+- `ledev-context summarize`
+- `ledev-context qa`
+- `ledev-context md`
+- `ledev-context html`
+- `ledev-context rollback`
+- `ledev-context document`
+- `ledev-context maintain`
+- `ledev-context full`
 
 ## 核心硬性规则
 

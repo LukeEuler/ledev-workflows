@@ -1,6 +1,6 @@
 ---
 name: ledev-task
-description: 面向中文用户。用于把代码开发、bug 修复、重构、小型工具生成和实现相关文档变更统一纳入编号 task 工作流。Use when Codex needs to create, continue, restart, implement, fix, or close typed development tasks before modifying project code, configs, tests, scripts, docs tied to implementation, or diagnosing bugs that may require code changes. 产物包括 .ai/tasks/ 下的 T### task 文件、.ai/tasks/index.md 状态索引和 .ai/state/ledev-task.md 运行状态；验证阶段可读取或交接给 ledev-test，但不替代独立测试治理。
+description: 面向中文用户。用于把代码开发、bug 修复、重构、小型工具生成和实现相关文档变更统一纳入编号 task 工作流。Use when an AI coding agent needs to create, continue, restart, implement, fix, or close typed development tasks before modifying project code, configs, tests, scripts, docs tied to implementation, or diagnosing bugs that may require code changes. 产物包括 .ai/tasks/ 下的 T### task 文件、.ai/tasks/index.md 状态索引和 .ai/state/ledev-task.md 运行状态；验证阶段可读取或交接给 ledev-test，但不替代独立测试治理。
 ---
 
 # LEDev Task
@@ -26,9 +26,9 @@ description: 面向中文用户。用于把代码开发、bug 修复、重构、
 
 ## 操作入口
 
-遵循共享 operation 规则。`ledev-task` 的 operation 对外称为操作；把 skill 名称后的第一个词视为操作名。操作名大小写不敏感；中文和英文都支持。
+遵循共享 operation 规则。`ledev-task` 的 operation 对外称为操作；把 skill 名称后的第一个词视为操作名。Codex 示例使用 `$ledev-task`，Claude Code 示例使用 `/ledev-task`。操作名大小写不敏感；中文和英文都支持。
 
-- `default`：当用户只输入 `$ledev-task` 且没有其他参数时，读取 task 状态，展示任务统计和未完成任务，并询问用户下一步意图；默认不写文件，除非索引缺失或 stale 且用户允许刷新。
+- `default`：当用户只调用本 skill 且没有其他参数时，读取 task 状态，展示任务统计和未完成任务，并询问用户下一步意图；默认不写文件，除非索引缺失或 stale 且用户允许刷新。
 - `new` / `新建`：为新的开发、修复、重构或工具生成工作启动需求澄清、方案选择和最终确认流程；确认前只允许创建或更新 task 草案，不允许推进实现。
 - `continue` / `继续`：读取现有 task，从上次阶段继续。
 - `restart` / `重启`：需求不变但上一阶段实现或方案不适用时，保留历史并重启当前 task。
@@ -37,11 +37,11 @@ description: 面向中文用户。用于把代码开发、bug 修复、重构、
 
 示例：
 
-- `$ledev-task`
-- `$ledev-task new 实现导出 CSV`
-- `$ledev-task continue T003`
-- `$ledev-task restart T003`
-- `$ledev-task close T003`
+- Codex：`$ledev-task new 实现导出 CSV`
+- Claude Code：`/ledev-task new 实现导出 CSV`
+- `ledev-task continue T003`
+- `ledev-task restart T003`
+- `ledev-task close T003`
 
 ## 硬性规则
 

@@ -2,7 +2,7 @@
 
 ## 中文说明
 
-这个项目用于维护一组平台无关的 AI 开发工作流，并提供 Codex skill 适配。目标是把软件项目开发中的重复流程固化下来，辅助完成：
+这个项目用于维护一组平台无关的 AI 开发工作流，并提供 Codex 和 Claude Code skill 适配。目标是把软件项目开发中的重复流程固化下来，辅助完成：
 
 - 项目信息采集、校验和项目文档沉淀
 - 编号 task 驱动的代码开发、模块实现和 bug 修复
@@ -41,21 +41,40 @@ skills/ledev-context/rules/<language>.md
 - `ledev-review`：以代码审查视角检查 diff，优先关注正确性、回归风险、错误处理、并发、数据一致性和测试缺口。
 - `ledev-tool`：为重复性开发任务生成脚本、CLI、代码生成器或辅助工具。
 
-### Codex 安装
+### 安装
 
-当前提供 Codex 适配。通过软链接把 `skills/` 下的 skill 目录链接到 Codex 的公共 skills 目录：
+当前提供 Codex 和 Claude Code 适配。通过软链接把 `skills/` 下的 skill 目录链接到对应工具的个人 skills 目录。
+
+Codex：
 
 ```sh
 ./scripts/install-symlinks.sh
 ```
 
-脚本默认行为：
+Codex 脚本默认行为：
 
 - 如果设置了 `CODEX_HOME`，链接到 `$CODEX_HOME/skills`
 - 否则链接到 `~/.codex/skills`
 - 会清理旧名字的软链接：`project-context-builder`、`dev-implementation`、`dev-context`、`dev-fix`、`dev-impl`、`ledev-fix`、`ledev-impl`、`dev-review`、`dev-test`、`dev-tool`、`test-validation`、`code-review`、`bugfix-sop`、`tool-generator`
 - 如果目标位置已经存在普通目录或文件，脚本会拒绝覆盖
 - 如果目标位置已经是软链接，脚本会重新创建链接
+
+Claude Code：
+
+```sh
+./scripts/install-claude-code-symlinks.sh
+```
+
+Claude Code 脚本默认行为：
+
+- 如果设置了 `CLAUDE_CODE_HOME`，链接到 `$CLAUDE_CODE_HOME/skills`
+- 否则链接到 `~/.claude/skills`
+- 只链接包含 `SKILL.md` 的 skill 目录，不链接 `_shared` 这类内部引用目录
+- 会清理同一批旧名字的软链接
+- 如果目标位置已经存在普通目录或文件，脚本会拒绝覆盖
+- 如果目标位置已经是软链接，脚本会重新创建链接
+
+Claude Code 使用目录名作为 slash command，例如安装后可用 `/ledev-context scope` 或 `/ledev-task new ...`。这些 skill 仍使用同一份 `SKILL.md`；通常不需要为 Claude Code 复制一份 skill 文件，只需要在说明中同时兼容 Codex 的 `$ledev-*` 和 Claude Code 的 `/ledev-*` 调用方式。
 
 ### 推荐使用方式
 
@@ -88,7 +107,7 @@ skills/ledev-context/rules/<language>.md
 
 ## English
 
-This project maintains platform-neutral AI development workflows and provides a Codex skill adapter. The workflows help with:
+This project maintains platform-neutral AI development workflows and provides Codex and Claude Code skill adapters. The workflows help with:
 
 - project context collection, validation, correction, and documentation
 - task-driven implementation work and bug fixing
@@ -127,21 +146,40 @@ Future rules can be added for:
 - `ledev-review`: Reviews diffs with a focus on correctness, regressions, error handling, concurrency, data consistency, and missing tests.
 - `ledev-tool`: Creates scripts, CLIs, code generators, or helper tools for repeated development workflows.
 
-### Codex Install
+### Install
 
-The current adapter supports Codex. Symlink the skill directories into the Codex shared skills directory:
+The current adapters support Codex and Claude Code. Symlink the skill directories into the matching personal skills directory.
+
+Codex:
 
 ```sh
 ./scripts/install-symlinks.sh
 ```
 
-Script behavior:
+Codex script behavior:
 
 - Uses `$CODEX_HOME/skills` when `CODEX_HOME` is set
 - Otherwise uses `~/.codex/skills`
 - Removes legacy symlinks: `project-context-builder`, `dev-implementation`, `dev-context`, `dev-fix`, `dev-impl`, `ledev-fix`, `ledev-impl`, `dev-review`, `dev-test`, `dev-tool`, `test-validation`, `code-review`, `bugfix-sop`, `tool-generator`
 - Refuses to overwrite existing non-symlink files or directories
 - Recreates existing symlinks
+
+Claude Code:
+
+```sh
+./scripts/install-claude-code-symlinks.sh
+```
+
+Claude Code script behavior:
+
+- Uses `$CLAUDE_CODE_HOME/skills` when `CLAUDE_CODE_HOME` is set
+- Otherwise uses `~/.claude/skills`
+- Links only skill directories that contain `SKILL.md`, so internal reference directories such as `_shared` are not exposed as skills
+- Removes the same legacy symlink names
+- Refuses to overwrite existing non-symlink files or directories
+- Recreates existing symlinks
+
+Claude Code uses the directory name as the slash command, for example `/ledev-context scope` or `/ledev-task new ...`. The same `SKILL.md` files are used for both adapters; a separate Claude Code copy is usually unnecessary.
 
 ### Suggested Usage
 
