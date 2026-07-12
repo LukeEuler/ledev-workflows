@@ -105,6 +105,8 @@ SCOPE-001: yes. Exclude tmp/ as well.
 
 scope stale 时，不要直接执行 scan；先追加新的 `SCOPE-###` 确认问题。
 
+`status` 发现上述变化时应输出 `stale-scope`；`refresh` 遇到 `stale-scope` 必须先回到 `scope`，不能直接刷新 facts 或正式文档。
+
 ## scan 前置条件
 
 `scan` 必须读取 `.ai/scope/scan-scope.md`。

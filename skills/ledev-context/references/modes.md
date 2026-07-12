@@ -12,6 +12,8 @@
 
 - `scope`、`scan`、`summarize`、`qa` 可以安全重复执行。
 - `md`、`html`、`document` 可以重复执行。`document` 默认先执行或校验 `md`，再执行 `html`；`html` 已存在时自动备份旧版后覆盖；`md` 和人类文档写入仍按目标文件风险确认，并保留已有 `Human Notes` 和 `Corrections`。
+- `status` 是只读检查，可以随时执行，不推进阶段锚点。
+- `refresh` 可以重复执行；默认按 stale 级别做最小必要刷新，`refresh --full` 强制重建 scope 之后的完整上下文链路。
 - `maintain` 用于用户纠正、项目新增模块、命令变化、结构变化后的增量维护。
 - `full` 适合首次完整建档，但写正式文件前仍然必须暂停确认。
 
@@ -22,6 +24,8 @@
 - 当推荐 `$ledev-context md` 时，必须同时提示 `$ledev-context document`：`md` 只生成或刷新 Markdown 上下文，`document` 会组合执行 Markdown 和 HTML 文档生成。
 - 如果用户显式执行前序阶段，例如当前锚点是 `html` 但用户执行 `scan`，完成后必须把锚点前置到 `scan`，并把 `summarize`、`qa`、`md`、`html`、`document` 等依赖后续产物标记为 stale 或在输出中明确说明需要重建。
 - 如果用户显式重复执行当前锚点阶段，完成后锚点仍停留在该阶段；只标记依赖它的后续产物 stale。
+- 如果用户显式执行 `status`，只报告 stale 级别、依据和推荐命令，不修改状态文件、事实层或文档。
+- 如果用户显式执行 `refresh`，先执行 `status` 级别的快照比对，再根据结果选择刷新链路；刷新完成后按实际完成阶段更新锚点和产物状态。
 
 ## 事实层、草稿和长期 QA
 
@@ -29,6 +33,7 @@
 - 显式执行 `scan` 时，除非用户要求 dry-run/no-write，否则自动写入 `.ai/facts/`。
 - `summarize` 默认不写正式上下文或正式项目文档；显式执行时，除非用户要求 dry-run/no-write，否则写入可恢复草稿到 `.ai/drafts/`。
 - `.ai/facts/` 是后续 AI 逻辑的基准数据源。`summarize`、`qa`、`md`、`html`、`document`、`maintain` 都必须先读取相关事实文件。
+- `.ai/facts/manifest.md` 和 `.ai/state/ledev-context.md` 必须记录源码快照，用于判断后续代码变化是否导致 facts、Markdown 或 HTML stale。快照缺失时，`status` 必须报告 `unknown`，`refresh` 必须保守建议至少执行 `scan`。
 - `qa` 写入长期 QA 文档 `.ai/qa/project-qa.md`。QA 答案是长期项目知识，不是 disposable draft。
 - 写草稿前要说明目标文件；如果用户已经在执行分阶段建档流程，草稿写入不需要像正式文档那样反复确认。
 - 运行 Python 或其他脚本产生的解释器缓存、工具缓存如果已被 git ignore 覆盖，例如 `__pycache__/`、`*.py[cod]`，不要为了清理而额外查询或删除；用 `git status --short` 判断真实待说明变更即可。
@@ -62,6 +67,8 @@
 - `.ai/state/` 是运行进度目录，不属于 `.ai/` 项目知识库；不同 skill 必须使用不同文件，例如 `.ai/state/ledev-task.md`、`.ai/state/ledev-test.md`。
 - 锚点记录“最后完整完成的阶段”，不是当前正在执行的阶段。
 - 合法顺序：`none -> scope -> scan -> summarize -> qa -> md -> html -> document -> maintain`。`rollback` 是恢复动作，不属于阶段锚点顺序。
+- `status` 是只读检查，不属于阶段锚点顺序。
+- `refresh` 是组合刷新动作，不属于独立锚点；它根据实际完成的最后阶段把锚点设为 `scope`、`scan`、`summarize`、`qa`、`md`、`html`、`document` 或 `maintain`。
 - 向后推进锚点必须按顺序，并且只能在阶段完成后推进。
 - 阶段只完成一半时，不推进锚点。
 - 用户重复执行前序阶段时，必须把锚点前置到该阶段，并把后续草稿、正式上下文、HTML 或人类文档标记为 stale，直到重新生成。
@@ -79,6 +86,94 @@
 | md | md | `.ai/project-context.html`、HTML 人类文档 | `$ledev-context html`：基于 Markdown 上下文生成 HTML。 |
 | html | html | `document` 阶段状态 | `$ledev-context document`：校验/刷新 Markdown 并生成 HTML；如果不需要组合文档，可以结束。 |
 | document | document | 无，除非用户后续回到前序阶段 | `$ledev-context maintain`：在项目变化或人工纠正后增量维护上下文；没有变化时可以结束。 |
+
+## 源码快照与 stale 分级
+
+`ledev-context` 必须维护可重复计算的源码快照，用于发现代码、配置、测试、文档和多仓库状态变化。
+
+快照建议记录在 `.ai/state/ledev-context.md`，并在 `.ai/facts/manifest.md` 保留事实层对应快照摘要：
+
+- `git_head`：上次 scan、refresh 或 document 依赖的主仓库 `HEAD`。
+- `git_status_short`：上次快照时的 `git status --short`；dirty files 默认视为用户改动。
+- `tracked_file_count`：按当前 scope 纳入扫描的文件数量。
+- `tracked_file_list_hash`：按当前 scope 纳入扫描的相对路径列表 hash。
+- `tracked_content_hash`：关键文件内容 hash，至少覆盖源码入口、配置、依赖文件、脚本、CI、测试入口和文档中影响命令/架构的文件。
+- `scope_hash`：`.ai/scope/scan-scope.md` 的内容 hash。
+- `facts_hash`：`.ai/facts/` 中事实文件内容 hash。
+- `context_hash`：`.ai/project-context.md` 的内容 hash；缺失时写 `missing`。
+- `html_hash`：`.ai/project-context.html` 的内容 hash；缺失时写 `missing`。
+- `related_repo_snapshot`：每个 Related repo 的 role、resolved_source、local_checkout、dirty 状态、scan_depth 和 version_match。
+
+快照计算只使用安全发现命令，例如 `git rev-parse HEAD`、`git status --short`、`rg --files`、`shasum`、`find`、`wc`。长期产物只记录相对路径、hash 和状态，不记录本机绝对路径。
+
+stale 级别：
+
+- `current`：scope、facts、Markdown 和 HTML 都与当前源码快照一致。
+- `unknown`：缺少快照、缺少事实层、无法读取 git 状态或 scope 未确认；不能声称 current。
+- `stale-minor`：只发现非架构性变更，例如普通注释、局部 README 文案、测试数据说明；建议按需刷新。
+- `stale-facts`：源码、入口、配置、依赖、命令、测试、生成规则、公共符号、路由/API、数据结构或架构边界变化；必须刷新 `.ai/facts/`。
+- `stale-scope`：新增/删除顶层目录、模块边界、仓库关系、扫描排除项、Related repo 解析来源或 scan depth 变化；必须先刷新或确认 scope。
+- `stale-document`：facts 已更新，但 `.ai/project-context.md`、`.ai/project-context.html` 或人类文档仍基于旧 facts；必须重新生成文档。
+
+stale 判断保守优先：无法确定变更是否影响上下文时，至少标为 `unknown` 或 `stale-facts`，并说明依据不足。
+
+## Status
+
+只读检查当前上下文是否过期。
+
+执行：
+
+- 读取 `.ai/state/ledev-context.md`、`.ai/scope/scan-scope.md`、`.ai/facts/manifest.md`、`.ai/project-context.md`、`.ai/project-context.html` 和 `.ai/qa/project-qa.md` 的存在性与状态。
+- 运行安全只读命令获取当前 git 状态、文件清单、关键文件 hash 和 Related repo 只读状态。
+- 将当前快照与上次快照比较，输出 stale 级别、触发原因、受影响产物和推荐命令。
+- 不创建、不修改、不删除任何文件；即使发现状态文件缺失也只报告。
+
+输出必须包含：
+
+- `Context status`：`current`、`unknown`、`stale-minor`、`stale-facts`、`stale-scope` 或 `stale-document`。
+- `Evidence`：触发判断的相对路径、状态或 hash 类别；不要输出大段文件清单。
+- `Affected artifacts`：需要重建或校验的 `.ai/` 产物。
+- `Recommended command`：例如 `$ledev-context refresh`、`$ledev-context scope`、`$ledev-context document` 或 `not-required`。
+
+推荐命令：
+
+- `unknown`：`$ledev-context refresh`，用于重建快照和事实层；scope 缺失时推荐 `$ledev-context scope`。
+- `stale-minor`：`$ledev-context refresh` 或 `not-required`，取决于用户是否需要文档精确反映小改动。
+- `stale-facts`：`$ledev-context refresh`。
+- `stale-scope`：`$ledev-context scope`，确认范围后再 `$ledev-context refresh`。
+- `stale-document`：`$ledev-context document`。
+- `current`：`not-required`。
+
+## Refresh
+
+根据当前代码变化刷新上下文。`refresh` 不替代 `scope` 的确认职责，也不绕过事实层。
+
+前置检查：
+
+- 先执行 `status` 同等的只读快照比对。
+- 如果 `.ai/scope/scan-scope.md` 缺失、未确认或 stale，先停止并推荐 `$ledev-context scope`；除非用户明确 `refresh --full` 且允许重新确认 scope。
+- 如果 `.ai/facts/manifest.md` 缺失或快照为 `unknown`，至少执行 `scan`。
+
+默认刷新路径：
+
+- `current`：不重写文件；报告当前上下文无需刷新。
+- `stale-minor`：询问或按用户命令确认是否刷新；用户已明确执行 `refresh` 时，可以刷新受影响 facts 和 `document`。
+- `stale-facts`：执行 `scan`，更新受影响事实文件和快照；随后标记 `summarize`、`md`、`html`、`document` stale，并推荐 `$ledev-context document`。如果用户明确要求完整刷新，可以继续执行后续阶段。
+- `stale-scope`：停止在 scope 确认前；写入或更新 scope 草案并请求确认，不直接 scan。
+- `stale-document`：执行 `document`，刷新 Markdown 和 HTML。
+- `unknown`：保守执行 `scan`；如果 scope 缺失或未确认，先回到 `scope`。
+
+`refresh --full`：
+
+- 按 `scope -> scan -> summarize -> qa -> md -> html` 重新建立链路。
+- scope 已确认且仍 current 时，可以复用；scope stale 时必须先确认。
+- 写正式 Markdown 或 HTML 前遵守 `md`、`html`、`document` 的写入确认和备份规则。
+
+刷新写入成功后：
+
+- 更新 `.ai/state/ledev-context.md` 的源码快照、产物状态、最近一次执行和推荐下一步。
+- 更新 `.ai/facts/manifest.md` 中的事实层快照摘要。
+- 报告本次完成阶段、当前锚点、标记 stale 的后续产物、推荐下一步命令。
 
 每个非 `default` 模式完成后必须输出：
 

@@ -23,3 +23,10 @@
 ## Validation Status
 
 - Not started.
+
+## Context Refresh
+
+- Context before task: not-checked
+- Context-impacting changes: unknown
+- Recommended command: $ledev-context status
+- Reason: None.

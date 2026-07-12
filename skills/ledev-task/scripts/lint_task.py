@@ -16,6 +16,9 @@ TASK_HEADING_RE = re.compile(r"^#\s+(T\d{3})\s+(.+?)\s+/\s+([A-Za-z][A-Za-z0-9 .
 PLACEHOLDER_RE = re.compile(
     r"(待记录|待总结|待确认|待提出|待实现|待验证|待补充|\bTODO\b|\bTBD\b)",
 )
+CONTEXT_REFRESH_COMMAND_RE = re.compile(
+    r"Recommended command:\s*(not-required|\$ledev-context\s+(?:status|refresh|scope|document))\b",
+)
 
 FULL_SECTIONS = (
     "User Request",
@@ -30,6 +33,7 @@ FULL_SECTIONS = (
     "Decision Log",
     "Implementation Log",
     "Validation Log",
+    "Context Refresh",
     "Handoff / Next",
 )
 
@@ -40,6 +44,7 @@ LIGHT_SECTIONS = (
     "Plan",
     "Activity Log",
     "Validation Log",
+    "Context Refresh",
     "Handoff / Next",
 )
 
@@ -123,6 +128,12 @@ def close_meaningful(value: str) -> bool:
     return True
 
 
+def context_refresh_meaningful(value: str) -> bool:
+    if not close_meaningful(value):
+        return False
+    return bool(CONTEXT_REFRESH_COMMAND_RE.search(value))
+
+
 def main() -> int:
     args = parse_args()
     task_path = Path(args.task_file)
@@ -177,6 +188,10 @@ def main() -> int:
         plan = section_map.get(plan_section, "")
         if not close_meaningful(plan):
             problems.append(f"{plan_section} is not complete enough for close")
+
+        context_refresh = section_map.get("Context Refresh", "")
+        if not context_refresh_meaningful(context_refresh):
+            problems.append("Context Refresh must include a concrete recommended command for close")
 
     if problems:
         for problem in problems:

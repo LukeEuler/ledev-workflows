@@ -97,7 +97,9 @@ description: 面向中文用户。用于在开发、review、bugfix、测试或�
 5. `md`
 6. `html`
 7. `document`
-8. `maintain`
+8. `status`
+9. `refresh`
+10. `maintain`
 
 支持模式：
 
@@ -110,6 +112,8 @@ description: 面向中文用户。用于在开发、review、bugfix、测试或�
 - `html`：基于事实层、长期 QA 和 `.ai/project-context.md` 重新编排信息，生成 `.ai/project-context.html`。
 - `rollback`：列出 `.ai/drafts/project-context.<timestamp>.html` 备份，按时间倒序让用户选择版本并恢复到 `.ai/project-context.html`。
 - `document`：默认组合执行 `md` 和 `html`；先刷新或校验 `.ai/project-context.md` 是否符合当前 Markdown 模板，再生成 HTML。
+- `status`：只读检查当前代码、scope、事实层、上下文和文档是否相对上次源码快照过期；不写文件，输出 stale 级别和推荐刷新命令。
+- `refresh`：根据源码快照和 stale 级别刷新受影响的 scope、事实层、草稿、QA、Markdown 和 HTML；默认最小必要刷新，`refresh --full` 强制按完整链路重建。
 - `maintain`：根据用户纠正或项目变化增量维护上下文，保留 `Human Notes` 和 `Corrections`。
 - `full`：按 scope、scan、summarize、qa、md、html 分阶段执行；写正式文件前暂停，问题超过 10 个前暂停。
 
@@ -124,6 +128,8 @@ description: 面向中文用户。用于在开发、review、bugfix、测试或�
 - `ledev-context html`
 - `ledev-context rollback`
 - `ledev-context document`
+- `ledev-context status`
+- `ledev-context refresh`
 - `ledev-context maintain`
 - `ledev-context full`
 
@@ -134,6 +140,7 @@ description: 面向中文用户。用于在开发、review、bugfix、测试或�
 - `.ai/facts/` 是后续 AI 逻辑的基准数据源；`summarize`、`qa`、`md`、`html`、`document` 和 `maintain` 都必须先读取相关事实文件。
 - 事实层只记录可观察事实和证据；最终上下文和文档必须区分 Confirmed Facts、Inferred Assumptions、风险和开放问题。
 - 分阶段工作时，在 `.ai/state/ledev-context.md` 维护本 skill 的阶段锚点；不允许跳过未完成阶段向后推进锚点。阶段锚点合法值见 `references/modes.md` 的“阶段锚点”段。
+- `status` 和 `refresh` 使用 `.ai/state/ledev-context.md` 与 `.ai/facts/manifest.md` 中的源码快照判断 stale；快照缺失时必须明确说明只能做保守判断。
 - `md` 必须以当前 `templates/project-context-template.md` 为结构标准；`html` 必须基于当前事实层和符合模板的 `.ai/project-context.md`。
 - `html`、`document` 和 `full` 默认通过 `scripts/render_project_context_html.py` 渲染 HTML；不要把 AI 生成的 HTML 字符串塞进普通占位符。
 - QA 是文件优先、长期维护的项目知识。新问题使用稳定 `QA-###` 编号，过期问题标记 `obsolete`，不删除后复用编号。

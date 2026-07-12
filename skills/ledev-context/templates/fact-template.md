@@ -12,11 +12,22 @@
 - 扫描时间：
 - 创建者：
 - 状态：active | partial | stale
+- 源码快照状态：missing | current | unknown | stale-minor | stale-facts | stale-scope | stale-document
 - 扫描范围：
 - 排除范围：
 - 多仓库角色：primary | related | not-applicable
 - 版本关系：declared_version / resolved_source / local_checkout / version_match
 - 相关 QA：
+
+## 源码快照摘要
+
+- git_head：
+- git_status_short：
+- tracked_file_count：
+- tracked_file_list_hash：
+- tracked_content_hash：
+- scope_hash：
+- related_repo_snapshot：
 
 ## 已观察事实
 

@@ -6,14 +6,16 @@
 2. 检查 git 状态，识别用户已有改动。
 3. 对 `new` 先完成需求澄清；对其他操作读取已有 task 的阶段和上下文。
 4. 读取已有 `.ai/project-context.md`、`.ai/facts/`、`.ai/qa/` 和相关 task；如果存在多仓库上下文，读取 `.ai/scope/scan-scope.md` 和 `.ai/facts/related-repos.md`。
-5. 观察目标代码架构和相关实现。
-6. 创建或更新 task，记录上下文、需求、范围、影响面、方案选项和阶段。
-7. 给出方案选项，必要时让用户选择；用户选择后给出最终执行摘要并等待确认。
-8. 收到最终确认后实现或修复。
-9. 更新实现记录。
-10. 运行聚焦验证，必要时扩大验证范围或交接 `ledev-test`。
-11. 更新验证记录，用 `scripts/generate_task_index.py` 刷新索引，并更新状态文件。
-12. 收尾报告。
+5. 如果存在 `ledev-context` 产物，优先执行或建议 `$ledev-context status`，记录上下文是否 current、stale、missing 或 unknown。
+6. 观察目标代码架构和相关实现。
+7. 创建或更新 task，记录上下文、需求、范围、影响面、方案选项、阶段和 `Context Refresh` 初始判断。
+8. 给出方案选项，必要时让用户选择；用户选择后给出最终执行摘要并等待确认。
+9. 收到最终确认后实现或修复。
+10. 更新实现记录。
+11. 根据实际改动更新 `Context Refresh`：判断是否影响 `ledev-context`，并写入推荐命令。
+12. 运行聚焦验证，必要时扩大验证范围或交接 `ledev-test`。
+13. 更新验证记录，用 `scripts/generate_task_index.py` 刷新索引，并更新状态文件。
+14. 收尾报告。
 
 ## default / 无参数
 
@@ -77,6 +79,7 @@ python3 <ledev-task-skill-dir>/scripts/generate_task_index.py --next-id <target-
 - 读取指定 task；未指定时从索引中选择唯一 `in_progress` task。若有多个，列出并要求用户指定。
 - 读取 task 的当前阶段、open questions、上次 touched files 和验证状态。
 - 重新检查 git 状态，确认期间是否有外部改动。
+- 如果存在 `.ai/state/ledev-context.md` 或 `.ai/facts/manifest.md`，检查 context 快照是否可能 stale；发现外部改动或无法判断时，记录 `Context before task: unknown` 并推荐 `$ledev-context status`。
 - 多仓库 task 还要检查相关 `Related repos` 的只读 git 状态和 checkout 是否变化；如果变化影响事实层，先更新或建议更新 `ledev-context`。
 - 从上次未完成阶段继续，不重复已确认事项，除非代码事实、用户需求、方案选择或风险边界发生变化。
 - 如果当前阶段早于 `solution_confirmed`，不得进入实现；先完成需求澄清、方案选择和最终确认。
@@ -98,11 +101,33 @@ python3 <ledev-task-skill-dir>/scripts/generate_task_index.py --next-id <target-
 执行：
 
 - 确认实现记录和验证记录完整。
+- 确认 `Context Refresh` 已记录：本 task 是否影响 `ledev-context`、原因和具体推荐命令。
 - 优先运行 `python3 <ledev-task-skill-dir>/scripts/lint_task.py --closing <task-file>`；脚本失败时，先补齐 task 记录或说明不能 close 的原因。
 - 若未运行验证，必须说明原因和剩余风险；通常不要标记 `done`。
 - 更新 task 状态为 `done`，同步索引和 `.ai/state/ledev-task.md`。
 - 同步索引时优先运行 `scripts/generate_task_index.py`，确保 `## Tasks` 表格里的 task id 和 title 都链接到对应 task 文件。
-- 最终回复包含文件变更、验证命令、结果和剩余风险。
+- 最终回复包含文件变更、验证命令、结果、`ledev-context` 刷新建议和剩余风险。
+
+## Context Refresh
+
+`ledev-task` 不直接代替 `ledev-context` 刷新事实层或文档，但必须在 task 文件和最终回复中给出明确交接。
+
+开始任务时：
+
+- 如果目标项目存在 `.ai/project-context.md`、`.ai/facts/manifest.md` 或 `.ai/state/ledev-context.md`，优先执行或建议 `$ledev-context status`。
+- 如果 status 显示 `current`，记录 `Context before task: current`。
+- 如果 status 显示 stale、缺少快照或无法执行，记录 `stale`、`missing` 或 `unknown`，并把风险写入 `Context Notes`。
+- 如果目标项目没有任何 context 产物，记录 `Context before task: missing`。
+
+实现或验证后，根据实际改动选择推荐命令：
+
+- `not-required`：未改变代码、配置、测试、脚本、依赖、目录结构、公共 API、数据模型、架构边界或跨仓关系。
+- `$ledev-context status`：发现用户或其他工具在 task 期间也改了文件，无法判断 context 是否 stale。
+- `$ledev-context refresh`：修改了源码、入口、配置、依赖、测试命令、公共符号、路由/API、数据结构、架构边界或其他事实层会捕获的内容。
+- `$ledev-context scope`：新增/删除顶层目录、模块边界、扫描排除项、关联仓库、workspace/replace/vendor 关系或 scan depth 相关内容。
+- `$ledev-context document`：事实层已更新，但正式 Markdown/HTML 仍需重建。
+
+如果多条规则同时匹配，选择最保守的命令，优先级为：`$ledev-context scope` > `$ledev-context refresh` > `$ledev-context document` > `$ledev-context status` > `not-required`。
 
 ## block / 阻塞
 

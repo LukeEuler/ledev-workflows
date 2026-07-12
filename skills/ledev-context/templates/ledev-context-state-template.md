@@ -14,6 +14,8 @@
 
 `none -> scope -> scan -> summarize -> qa -> md -> html -> document -> maintain`
 
+`status` 是只读检查，不推进锚点。`refresh` 是组合刷新动作，不是独立锚点；刷新完成后按实际完成的最后阶段设置锚点。
+
 ## 完成规则
 
 - 锚点表示最后一个完整完成的阶段。
@@ -39,6 +41,30 @@
 - `.ai/drafts/project-scan.md`：missing | active | complete | stale | promoted | archived | deleted
 - `.ai/drafts/project-context-draft.md`：missing | active | complete | stale | promoted | archived | deleted
 - `.ai/qa/project-qa.md`：missing | active | complete | needs-follow-up | stale
+
+## 源码快照
+
+- 快照状态：missing | current | unknown | stale-minor | stale-facts | stale-scope | stale-document
+- 快照时间：
+- Primary repo git_head：
+- Primary repo git_status_short：
+- tracked_file_count：
+- tracked_file_list_hash：
+- tracked_content_hash：
+- scope_hash：
+- facts_hash：
+- context_hash：
+- html_hash：
+- Related repos：
+  - `related:<name>`：role / resolved_source / local_checkout / dirty_state / scan_depth / version_match
+
+## stale 判断
+
+- 当前判断：current | unknown | stale-minor | stale-facts | stale-scope | stale-document
+- 触发原因：
+- 受影响产物：
+- 推荐刷新命令：
+- 最近一次只读 status：
 
 ## 最终产物
 

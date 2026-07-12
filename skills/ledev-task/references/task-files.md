@@ -136,6 +136,7 @@ task 类型使用稳定英文值，中文说明可以写在旁边。`Type` 是�
 - `Decision Log`：方案、取舍、用户确认和重启原因。
 - `Implementation Log`：实际改动记录。
 - `Validation Log`：命令、结果、失败或未执行原因。
+- `Context Refresh`：本 task 对 `ledev-context` 的影响、刷新原因和推荐命令。
 - `Handoff / Next`：交接给 `ledev-test`、后续事项或阻塞项。
 
 ## 轻量 task 必填内容
@@ -152,6 +153,7 @@ task 类型使用稳定英文值，中文说明可以写在旁边。`Type` 是�
 - `Plan`：采用方案、预计修改位置、验证计划和剩余风险。
 - `Activity Log`：需求确认、实现和重要决策的时间线。
 - `Validation Log`：命令、结果、失败或未执行原因。
+- `Context Refresh`：本 task 对 `ledev-context` 的影响、刷新原因和推荐命令。
 - `Handoff / Next`：后续事项或阻塞项。
 
 close 前优先运行：
@@ -161,6 +163,29 @@ python3 <ledev-task-skill-dir>/scripts/lint_task.py --closing <task-file>
 ```
 
 脚本失败时不要标记 `done`，先补齐缺失字段、实现/活动记录或验证记录。
+
+## Context Refresh 规则
+
+每个 task 在实现或收尾时必须记录是否需要刷新 `ledev-context`。字段建议：
+
+```md
+## Context Refresh
+
+- Context before task: current | stale | missing | unknown | not-checked
+- Context-impacting changes: yes | no | unknown
+- Reason:
+- Recommended command: not-required | $ledev-context status | $ledev-context refresh | $ledev-context scope | $ledev-context document
+```
+
+推荐命令规则：
+
+- `not-required`：未改代码、配置、测试、脚本、依赖、目录结构或架构事实；例如只更新 task 记录。
+- `$ledev-context status`：task 期间发现用户或外部工具也改了文件，无法确认 context 是否仍然 current。
+- `$ledev-context refresh`：修改了源码、入口、配置、依赖、测试命令、公共符号、路由/API、数据结构、架构边界或事实层会捕获的内容。
+- `$ledev-context scope`：新增/删除顶层目录、模块边界、扫描排除项、关联仓库、workspace/replace/vendor 关系或其他会改变扫描范围的内容。
+- `$ledev-context document`：事实层已经由本次或外部流程更新，但 Markdown/HTML 仍需重新生成。
+
+如果不确定改动是否影响 context，写 `Context-impacting changes: unknown`，推荐 `$ledev-context status` 或 `$ledev-context refresh`，并在 `Reason` 中说明不确定来源。
 
 ## 索引规则
 
@@ -196,5 +221,6 @@ python3 <ledev-task-skill-dir>/scripts/generate_task_index.py <target-project-ro
 - touched files。
 - open questions。
 - validation status。
+- context refresh status：`Context before task`、`Context-impacting changes`、推荐的 `ledev-context` 命令和原因。
 
 其他 skill 必须使用自己的 `.ai/state/<skill-name>.md`，不要共用 `ledev-task` 状态文件。

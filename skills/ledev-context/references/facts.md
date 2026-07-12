@@ -37,7 +37,7 @@
 
 文件用途：
 
-- `manifest.md`：事实层元数据、扫描范围、时间、状态、未扫描原因。
+- `manifest.md`：事实层元数据、扫描范围、时间、状态、源码快照摘要、stale 判断和未扫描原因。
 - `repo-structure.md`：目录树、重要目录、文件分布、generated/vendor/third-party 标记。
 - `code-inventory.md`：语言、包/模块、入口文件、公开符号、核心类型、接口、配置文件。
 - `architecture-facts.md`：可观察架构事实、模块依赖、调用方向、数据流入口/出口、外部边界。
@@ -54,6 +54,7 @@
 
 - 使用 `rg --files` 或等价方式列出全部文件。
 - 明确记录扫描范围和排除范围。
+- 在 `manifest.md` 记录本次事实层对应的源码快照摘要：`git_head`、`git_status_short`、纳入扫描的文件数量、文件清单 hash、关键内容 hash、scope hash、Related repo 快照和当前 stale 级别。
 - 多仓库扫描时，分别记录每个仓库的扫描范围、排除范围、git 状态、版本信息和未扫描原因。
 - 对 `Related repos` 默认只读扫描；不要在关联仓库写 `.ai/` 事实文件。
 - 写入事实层前必须把路径标准化为可移植路径：主仓库内路径相对 `Primary repo` 根目录；关联仓库路径相对 `Primary repo`，或写成 `related:<repo-name>:<repo-relative-path>`。
@@ -143,4 +144,6 @@
 - `summarize` 必须先读取 `.ai/facts/manifest.md` 和相关事实文件。
 - `qa` 应优先针对事实缺口、事实冲突、人工无法从代码确认的信息提问。
 - `md` 和 `html` 只能把事实层中有证据的内容提升为 confirmed 内容；`html` 可以重新编排信息，但不能改变事实确定性。
+- `status` 必须读取 `.ai/facts/manifest.md` 中的源码快照摘要，并和当前仓库快照比较后输出 stale 级别。
+- `refresh` 发现事实层 stale 时，应先更新 `.ai/facts/` 和 `manifest.md` 的快照摘要，再刷新或标记下游上下文和文档。
 - `maintain` 发现代码变化时，应先更新 `.ai/facts/`，再更新上下文和文档。

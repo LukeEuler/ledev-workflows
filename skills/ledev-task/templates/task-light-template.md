@@ -42,6 +42,13 @@
 
 - 待验证。
 
+## Context Refresh
+
+- Context before task: not-checked
+- Context-impacting changes: unknown
+- Reason: 待记录。
+- Recommended command: $ledev-context status
+
 ## Handoff / Next
 
 - None.
