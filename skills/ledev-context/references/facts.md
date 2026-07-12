@@ -1,6 +1,6 @@
 # 事实层采集规则
 
-`ledev-context scan` 的核心产物是 `.ai/facts/`。这是后续 `summarize`、`qa`、`md`、`html`、`document`、`maintain` 的基准数据源。
+`ledev-context scan` 的核心产物是 `.ai/ledev/facts/`。这是后续 `summarize`、`qa`、`md`、`html`、`document`、`maintain` 的基准数据源。
 
 ## 定位
 
@@ -22,7 +22,7 @@
 ## 推荐目录
 
 ```text
-.ai/facts/
+.ai/ledev/facts/
   manifest.md
   repo-structure.md
   code-inventory.md
@@ -48,7 +48,7 @@
 - `related-repos.md`：多仓库上下文、关联仓库角色、版本关系、只读/可写边界、跨仓证据索引。
 - `evidence-index.md`：重要事实到证据来源的索引。
 
-可以按项目规模合并或拆分，但必须保留 `.ai/facts/manifest.md` 和 `.ai/facts/evidence-index.md`。
+可以按项目规模合并或拆分，但必须保留 `.ai/ledev/facts/manifest.md` 和 `.ai/ledev/facts/evidence-index.md`。
 
 ## 扫描要求
 
@@ -56,9 +56,9 @@
 - 明确记录扫描范围和排除范围。
 - 在 `manifest.md` 记录本次事实层对应的源码快照摘要：`git_head`、`git_status_short`、纳入扫描的文件数量、文件清单 hash、关键内容 hash、scope hash、Related repo 快照和当前 stale 级别。
 - 多仓库扫描时，分别记录每个仓库的扫描范围、排除范围、git 状态、版本信息和未扫描原因。
-- 对 `Related repos` 默认只读扫描；不要在关联仓库写 `.ai/` 事实文件。
+- 对 `Related repos` 默认只读扫描；不要在关联仓库写 `.ai/ledev/` 事实文件。
 - 写入事实层前必须把路径标准化为可移植路径：主仓库内路径相对 `Primary repo` 根目录；关联仓库路径相对 `Primary repo`，或写成 `related:<repo-name>:<repo-relative-path>`。
-- 本机绝对路径只能进入 `.ai/drafts/local-paths.md` 这类临时映射文件，不进入 `.ai/facts/`。
+- 本机绝对路径只能进入 `.ai/ledev/drafts/local-paths.md` 这类临时映射文件，不进入 `.ai/ledev/facts/`。
 - 观察所有源码目录、配置文件、脚本、CI、README、docs、测试文件。
 - 对大型 generated/vendor/third-party 目录可以只记录目录、规模和来源，不逐文件深入。
 - 对二进制、大文件或不可读文件，记录路径和未读取原因。
@@ -110,7 +110,7 @@
 - `related:funnel:pkg/log/event.go`
 - `module-cache:github.com/org/pkg@v1.2.3/file.go`，仅当事实来自不可避免的 module cache，并且不记录本机 cache 根目录。
 
-如果命令输出只提供绝对路径，应在记录事实时转换为相对路径；无法可靠转换时，把原始输出放入 `.ai/drafts/local-paths.md`，事实层写“路径无法稳定相对化，详见临时草稿”。
+如果命令输出只提供绝对路径，应在记录事实时转换为相对路径；无法可靠转换时，把原始输出放入 `.ai/ledev/drafts/local-paths.md`，事实层写“路径无法稳定相对化，详见临时草稿”。
 
 ## 版本关系事实
 
@@ -141,9 +141,9 @@
 
 ## 后续使用
 
-- `summarize` 必须先读取 `.ai/facts/manifest.md` 和相关事实文件。
+- `summarize` 必须先读取 `.ai/ledev/facts/manifest.md` 和相关事实文件。
 - `qa` 应优先针对事实缺口、事实冲突、人工无法从代码确认的信息提问。
 - `md` 和 `html` 只能把事实层中有证据的内容提升为 confirmed 内容；`html` 可以重新编排信息，但不能改变事实确定性。
-- `status` 必须读取 `.ai/facts/manifest.md` 中的源码快照摘要，并和当前仓库快照比较后输出 stale 级别。
-- `refresh` 发现事实层 stale 时，应先更新 `.ai/facts/` 和 `manifest.md` 的快照摘要，再刷新或标记下游上下文和文档。
-- `maintain` 发现代码变化时，应先更新 `.ai/facts/`，再更新上下文和文档。
+- `status` 必须读取 `.ai/ledev/facts/manifest.md` 中的源码快照摘要，并和当前仓库快照比较后输出 stale 级别。
+- `refresh` 发现事实层 stale 时，应先更新 `.ai/ledev/facts/` 和 `manifest.md` 的快照摘要，再刷新或标记下游上下文和文档。
+- `maintain` 发现代码变化时，应先更新 `.ai/ledev/facts/`，再更新上下文和文档。

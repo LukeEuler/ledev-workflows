@@ -1,6 +1,6 @@
 # 上下文草稿模板
 
-用于 `scan`、`summarize` 阶段写入临时 `.ai/drafts/*.md`。正文以中文为主；命令、路径、状态值可保留英文。
+用于 `scan`、`summarize` 阶段写入临时 `.ai/ledev/drafts/*.md`。正文以中文为主；命令、路径、状态值可保留英文。
 
 ## 草稿元数据
 
@@ -15,7 +15,7 @@
 
 ## 已确认事实
 
-- 从 `.ai/facts/`、仓库文件、命令或用户补充中确认的事实。重要事实应引用事实文件或证据来源。
+- 从 `.ai/ledev/facts/`、仓库文件、命令或用户补充中确认的事实。重要事实应引用事实文件或证据来源。
 
 ## AI 推断
 
@@ -27,19 +27,19 @@
 
 ## 待确认问题
 
-- 仍需要人确认的问题。如果需要正式进入 QA，移动到 `.ai/qa/project-qa.md`。
+- 仍需要人确认的问题。如果需要正式进入 QA，移动到 `.ai/ledev/qa/project-qa.md`。
 
 ## 相关 QA
 
-- 影响这个草稿的 `.ai/qa/project-qa.md` 中的 QA 编号。
+- 影响这个草稿的 `.ai/ledev/qa/project-qa.md` 中的 QA 编号。
 
 ## 相关事实
 
-- 影响这个草稿的 `.ai/facts/` 文件和事实编号。
+- 影响这个草稿的 `.ai/ledev/facts/` 文件和事实编号。
 
 ## 候选上下文更新
 
-- 可以提升到 `.ai/project-context.md` 的候选内容。
+- 可以提升到 `.ai/ledev/project-context.md` 的候选内容。
 
 ## 候选文档更新
 

@@ -52,7 +52,7 @@ REQUIRED_FIELDS = ("Type", "Status", "Phase", "Created", "Updated")
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Lint a .ai/tasks/T### task file.")
+    parser = argparse.ArgumentParser(description="Lint a .ai/ledev/tasks/T### task file.")
     parser.add_argument("task_file", help="Task markdown file to lint.")
     parser.add_argument(
         "--closing",

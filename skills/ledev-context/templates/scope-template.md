@@ -1,13 +1,13 @@
 # 扫描范围模板
 
-用于 `.ai/scope/scan-scope.md`。正文以中文为主；路径、命令、状态值可保留英文。
+用于 `.ai/ledev/scope/scan-scope.md`。正文以中文为主；路径、命令、状态值可保留英文。
 需要用户输入的短确认 token 使用英文，例如 `yes/no`、`edit/confirm`、`continue/stop`；不要要求输入中文短命令。
 
 ## Scope 元数据
 
 - 目标路径：
 - Primary repo：
-- 路径策略：长期产物使用相对路径；本机绝对路径只允许写入 `.ai/drafts/local-paths.md`
+- 路径策略：长期产物使用相对路径；本机绝对路径只允许写入 `.ai/ledev/drafts/local-paths.md`
 - 创建时间：
 - 最后确认时间：
 - 创建者：
@@ -30,7 +30,7 @@
 
 - Primary repo name：
 - Primary repo path：`.` 或相对当前工作目录的可移植路径
-- Context output location：`.ai/` in primary repo
+- Context output location：`.ai/ledev/` in primary repo
 - 默认写入策略：Primary repo writable；Related repos read-only
 
 | Related repo | local_path | role | scan_depth | write_policy | declared_version | resolved_source | local_checkout | version_match | notes |
@@ -47,7 +47,7 @@
 - Token 风险：
 - 准确度风险：
 - 多仓版本风险：
-- 本机绝对路径映射：not-recorded | `.ai/drafts/local-paths.md`
+- 本机绝对路径映射：not-recorded | `.ai/ledev/drafts/local-paths.md`
 
 ## Scope 确认问题
 

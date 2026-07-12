@@ -13,14 +13,14 @@
 
 ## 事实层要求
 
-Go 项目的 `scan` 必须把代码事实写入 `.ai/facts/`，不能只写项目摘要。
+Go 项目的 `scan` 必须把代码事实写入 `.ai/ledev/facts/`，不能只写项目摘要。
 
 重点事实文件建议：
 
-- `.ai/facts/code-inventory.md`：记录 module path、Go version、package 列表、入口、导出类型/接口/函数、重要配置文件。
-- `.ai/facts/architecture-facts.md`：记录 package import 关系、`cmd/` 初始化关系、handler/router 注册、service/repository/client 等可观察调用边界。
-- `.ai/facts/dependencies.md`：记录 `go.mod` 依赖、内部包依赖、外部服务 client、数据库/消息/网络依赖。
-- `.ai/facts/tests.md`：记录 `_test.go`、table-driven tests、fixtures、mocks、integration scripts 和外部依赖。
+- `.ai/ledev/facts/code-inventory.md`：记录 module path、Go version、package 列表、入口、导出类型/接口/函数、重要配置文件。
+- `.ai/ledev/facts/architecture-facts.md`：记录 package import 关系、`cmd/` 初始化关系、handler/router 注册、service/repository/client 等可观察调用边界。
+- `.ai/ledev/facts/dependencies.md`：记录 `go.mod` 依赖、内部包依赖、外部服务 client、数据库/消息/网络依赖。
+- `.ai/ledev/facts/tests.md`：记录 `_test.go`、table-driven tests、fixtures、mocks、integration scripts 和外部依赖。
 
 只记录可观察事实。例如“`internal/foo` import 了 `pkg/bar`”可以写；“`internal/foo` 是核心业务模块”除非有文档或人工确认，否则不要写进事实层。
 

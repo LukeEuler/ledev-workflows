@@ -130,8 +130,10 @@ ARCHITECTURE_TEXT_LIMITS = {
     "BOTTOM_TIER_ITEM_4_NOTE": 16,
 }
 
+INTERNAL_AI_PATH_RE = r"\.ai(?:/ledev)?/"
+
 ARCHITECTURE_FORBIDDEN_PATTERNS = [
-    re.compile(r"\.ai/|\.md\b|:[0-9]+|QA-[0-9]+", re.IGNORECASE),
+    re.compile(INTERNAL_AI_PATH_RE + r"|\.md\b|:[0-9]+|QA-[0-9]+", re.IGNORECASE),
     re.compile(r"go\.mod|Makefile|\.gitlab-ci|CI\b|lint|test|测试|dev/example|dev scripts", re.IGNORECASE),
     re.compile(r"generated|third[-_ ]party|vendor", re.IGNORECASE),
 ]
@@ -189,12 +191,12 @@ MERMAID_KEYWORDS = {
 }
 
 MODEL_FORBIDDEN_PATTERNS = [
-    re.compile(r"\.ai/|\.md\b|:[0-9]+|QA-[0-9]+", re.IGNORECASE),
+    re.compile(INTERNAL_AI_PATH_RE + r"|\.md\b|:[0-9]+|QA-[0-9]+", re.IGNORECASE),
     re.compile(r"证据|evidence|file:|line:", re.IGNORECASE),
 ]
 
 SECURITY_FORBIDDEN_PATTERNS = [
-    re.compile(r"\.ai/|\.md\b|:[0-9]+|QA-[0-9]+", re.IGNORECASE),
+    re.compile(INTERNAL_AI_PATH_RE + r"|\.md\b|:[0-9]+|QA-[0-9]+", re.IGNORECASE),
     re.compile(r"证据|evidence|file:|line:", re.IGNORECASE),
     re.compile(r"(APP|API|ACCESS|SECRET|TOKEN|KEY|PWD|PASSWORD|AK|SK)[A-Z0-9_]{2,}", re.IGNORECASE),
     re.compile(r"\b(AES|RSA|ECDSA|Ed25519|SHA-?256|SHA-?512|HMAC|CBC|GCM|PKCS|padding|IV|密钥长度|迭代次数)\b", re.IGNORECASE),
@@ -236,7 +238,7 @@ LEGACY_SCOPE_PLACEHOLDERS = {
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Render .ai/project-context.html from project-context-html-template.html and JSON placeholders.",
+        description="Render .ai/ledev/project-context.html from project-context-html-template.html and JSON placeholders.",
     )
     parser.add_argument("--template", required=True, type=Path, help="HTML template path.")
     parser.add_argument("--data", type=Path, help="JSON data path.")
@@ -1701,10 +1703,10 @@ def validate_rendered(rendered: str) -> None:
 
 def validate_output_path(path: Path) -> None:
     parts = path.parts
-    if path.name == "project-context.tmp.html" and len(parts) >= 2 and parts[-2] == ".ai":
-        raise SystemExit("不要生成临时 HTML；请直接输出 .ai/project-context.html，脚本会自动备份旧版。")
-    if path.name == "project-context.tmp.html" and len(parts) >= 3 and parts[-3:] == (".ai", "drafts", "project-context.tmp.html"):
-        raise SystemExit("不要生成临时 HTML；请直接输出 .ai/project-context.html，脚本会自动备份旧版。")
+    if path.name == "project-context.tmp.html" and len(parts) >= 3 and parts[-3:-1] == (".ai", "ledev"):
+        raise SystemExit("不要生成临时 HTML；请直接输出 .ai/ledev/project-context.html，脚本会自动备份旧版。")
+    if path.name == "project-context.tmp.html" and len(parts) >= 4 and parts[-4:] == (".ai", "ledev", "drafts", "project-context.tmp.html"):
+        raise SystemExit("不要生成临时 HTML；请直接输出 .ai/ledev/project-context.html，脚本会自动备份旧版。")
 
 
 def html_backup_dir(path: Path) -> Path:

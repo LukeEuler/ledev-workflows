@@ -10,8 +10,8 @@ QA 是文件优先、长期维护的项目知识。
 
 当需要提问时：
 
-1. 如果存在 `.ai/qa/project-qa.md`，先读取。
-2. 除非用户要求 dry-run/no-write，否则把新增或更新问题写入 `.ai/qa/project-qa.md`。
+1. 如果存在 `.ai/ledev/qa/project-qa.md`，先读取。
+2. 除非用户要求 dry-run/no-write，否则把新增或更新问题写入 `.ai/ledev/qa/project-qa.md`。
 3. 终端输出保持简短。
 4. 提示用户可以编辑文件回答，也可以按 QA 编号 inline 回答。
 
@@ -30,15 +30,15 @@ QA 文档是项目上下文和人类文档的长期补充。它保存详细的�
 主 QA 文档：
 
 ```text
-.ai/qa/project-qa.md
+.ai/ledev/qa/project-qa.md
 ```
 
-不要把 active QA 存到 `.ai/drafts/`。drafts 只用于临时 scan 和 summarize 输出；QA answers 是长期项目知识。
+不要把 active QA 存到 `.ai/ledev/drafts/`。drafts 只用于临时 scan 和 summarize 输出；QA answers 是长期项目知识。
 
 ## 编号规则
 
 - 每个问题必须有稳定编号：`QA-001`、`QA-002` 等。
-- 追加或重生成问题时，从 `.ai/qa/project-qa.md` 中已有最大编号继续递增。
+- 追加或重生成问题时，从 `.ai/ledev/qa/project-qa.md` 中已有最大编号继续递增。
 - 问题展示给用户后，不允许重编号。
 - 不复用已删除或 obsolete 的编号。
 - 过期问题标记为 `Status: obsolete`。
@@ -75,12 +75,12 @@ QA-003: not-applicable.
 
 允许写文件时：
 
-- 把 inline answers 合并回 `.ai/qa/project-qa.md`。
+- 把 inline answers 合并回 `.ai/ledev/qa/project-qa.md`。
 - 根据答案设置 `Status: answered`、`deferred` 或 `not-applicable`。
 - 设置 `Answer source: inline reply`。
 - 更新 `Last updated`。
 
-用户直接编辑 `.ai/qa/project-qa.md` 时：
+用户直接编辑 `.ai/ledev/qa/project-qa.md` 时：
 
 - 继续前先读取文件。
 - 保留用户在 `Answer` 中的原文。
@@ -89,7 +89,7 @@ QA-003: not-applicable.
 
 ## 既有 QA 和冲突
 
-创建新问题前，先读取已有 `.ai/qa/project-qa.md`。
+创建新问题前，先读取已有 `.ai/ledev/qa/project-qa.md`。
 
 已 answered 的 QA 视为人工项目知识。如果既有 QA 和已验证仓库事实、当前草稿上下文或新的用户说明冲突：
 
@@ -133,7 +133,7 @@ QA 阶段完成后，QA 文档仍然长期维护。未来的 `qa`、`md`、`html
 ## 终端示例
 
 ```text
-QA 已更新：.ai/qa/project-qa.md
+QA 已更新：.ai/ledev/qa/project-qa.md
 
 待回答：
 - QA-001: 确认核心业务目标

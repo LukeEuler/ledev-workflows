@@ -1,6 +1,6 @@
 # 项目 QA 模板
 
-用于长期维护的项目 QA 文档：`.ai/qa/project-qa.md`。正文以中文为主；字段名、状态值和 QA 编号可保留英文。
+用于长期维护的项目 QA 文档：`.ai/ledev/qa/project-qa.md`。正文以中文为主；字段名、状态值和 QA 编号可保留英文。
 需要用户输入的短确认 token 使用英文，例如 `yes/no`、`defer`、`not-applicable`、`continue/stop`；不要要求输入中文短命令。
 
 ## QA 元数据
@@ -39,7 +39,7 @@ QA-002: not-applicable.
 
 ## 已确认 QA 结论
 
-- 可以提升到 `.ai/project-context.md` 或人类文档的简洁结论。
+- 可以提升到 `.ai/ledev/project-context.md` 或人类文档的简洁结论。
 
 ## 已推迟或仍开放的追问
 

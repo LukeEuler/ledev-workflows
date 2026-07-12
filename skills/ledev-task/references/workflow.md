@@ -5,7 +5,7 @@
 1. 识别操作：`default`、`new`、`continue`、`restart`、`close` 或 `block`。
 2. 检查 git 状态，识别用户已有改动。
 3. 对 `new` 先完成需求澄清；对其他操作读取已有 task 的阶段和上下文。
-4. 读取已有 `.ai/project-context.md`、`.ai/facts/`、`.ai/qa/` 和相关 task；如果存在多仓库上下文，读取 `.ai/scope/scan-scope.md` 和 `.ai/facts/related-repos.md`。
+4. 读取已有 `.ai/ledev/project-context.md`、`.ai/ledev/facts/`、`.ai/ledev/qa/` 和相关 task；如果存在多仓库上下文，读取 `.ai/ledev/scope/scan-scope.md` 和 `.ai/ledev/facts/related-repos.md`。
 5. 如果存在 `ledev-context` 产物，优先执行或建议 `$ledev-context status`，记录上下文是否 current、stale、missing 或 unknown。
 6. 观察目标代码架构和相关实现。
 7. 创建或更新 task，记录上下文、需求、范围、影响面、方案选项、阶段和 `Context Refresh` 初始判断。
@@ -23,8 +23,8 @@
 
 执行：
 
-- 检查目标项目是否存在 `.ai/tasks/`。
-- 读取 `.ai/tasks/index.md`；缺失或明显 stale 时，优先运行 `python3 <ledev-task-skill-dir>/scripts/generate_task_index.py <target-project-root>` 刷新索引。若当前场景不允许写文件，使用 `--dry-run` 或 `--unfinished-report` 只读输出。
+- 检查目标项目是否存在 `.ai/ledev/tasks/`。
+- 读取 `.ai/ledev/tasks/index.md`；缺失或明显 stale 时，优先运行 `python3 <ledev-task-skill-dir>/scripts/generate_task_index.py <target-project-root>` 刷新索引。若当前场景不允许写文件，使用 `--dry-run` 或 `--unfinished-report` 只读输出。
 - 展示 task 总数和状态统计。
 - 列出未完成任务。未完成任务指状态不是 `done` 且不是 `obsolete` 的 task，通常包括 `todo`、`in_progress` 和 `blocked`。
 - 询问用户下一步意图，给出简短可执行选项，例如：`continue T###`、`new <需求>`、`restart T###`、`close T###`、`block T###`。
@@ -43,7 +43,7 @@ python3 <ledev-task-skill-dir>/scripts/generate_task_index.py --unfinished-repor
 
 执行：
 
-- 检查 `.ai/tasks/index.md`、`.ai/tasks/`、`.ai/state/ledev-task.md` 和 git 历史中已有 task 编号及未完成任务，避免重复创建。
+- 检查 `.ai/ledev/tasks/index.md`、`.ai/ledev/tasks/`、`.ai/ledev/state/ledev-task.md` 和 git 历史中已有 task 编号及未完成任务，避免重复创建。
 - 创建 task 文件前必须先分配下一个不复用编号。优先运行只读命令：
 
 ```sh
@@ -79,7 +79,7 @@ python3 <ledev-task-skill-dir>/scripts/generate_task_index.py --next-id <target-
 - 读取指定 task；未指定时从索引中选择唯一 `in_progress` task。若有多个，列出并要求用户指定。
 - 读取 task 的当前阶段、open questions、上次 touched files 和验证状态。
 - 重新检查 git 状态，确认期间是否有外部改动。
-- 如果存在 `.ai/state/ledev-context.md` 或 `.ai/facts/manifest.md`，检查 context 快照是否可能 stale；发现外部改动或无法判断时，记录 `Context before task: unknown` 并推荐 `$ledev-context status`。
+- 如果存在 `.ai/ledev/state/ledev-context.md` 或 `.ai/ledev/facts/manifest.md`，检查 context 快照是否可能 stale；发现外部改动或无法判断时，记录 `Context before task: unknown` 并推荐 `$ledev-context status`。
 - 多仓库 task 还要检查相关 `Related repos` 的只读 git 状态和 checkout 是否变化；如果变化影响事实层，先更新或建议更新 `ledev-context`。
 - 从上次未完成阶段继续，不重复已确认事项，除非代码事实、用户需求、方案选择或风险边界发生变化。
 - 如果当前阶段早于 `solution_confirmed`，不得进入实现；先完成需求澄清、方案选择和最终确认。
@@ -104,7 +104,7 @@ python3 <ledev-task-skill-dir>/scripts/generate_task_index.py --next-id <target-
 - 确认 `Context Refresh` 已记录：本 task 是否影响 `ledev-context`、原因和具体推荐命令。
 - 优先运行 `python3 <ledev-task-skill-dir>/scripts/lint_task.py --closing <task-file>`；脚本失败时，先补齐 task 记录或说明不能 close 的原因。
 - 若未运行验证，必须说明原因和剩余风险；通常不要标记 `done`。
-- 更新 task 状态为 `done`，同步索引和 `.ai/state/ledev-task.md`。
+- 更新 task 状态为 `done`，同步索引和 `.ai/ledev/state/ledev-task.md`。
 - 同步索引时优先运行 `scripts/generate_task_index.py`，确保 `## Tasks` 表格里的 task id 和 title 都链接到对应 task 文件。
 - 最终回复包含文件变更、验证命令、结果、`ledev-context` 刷新建议和剩余风险。
 
@@ -114,7 +114,7 @@ python3 <ledev-task-skill-dir>/scripts/generate_task_index.py --next-id <target-
 
 开始任务时：
 
-- 如果目标项目存在 `.ai/project-context.md`、`.ai/facts/manifest.md` 或 `.ai/state/ledev-context.md`，优先执行或建议 `$ledev-context status`。
+- 如果目标项目存在 `.ai/ledev/project-context.md`、`.ai/ledev/facts/manifest.md` 或 `.ai/ledev/state/ledev-context.md`，优先执行或建议 `$ledev-context status`。
 - 如果 status 显示 `current`，记录 `Context before task: current`。
 - 如果 status 显示 stale、缺少快照或无法执行，记录 `stale`、`missing` 或 `unknown`，并把风险写入 `Context Notes`。
 - 如果目标项目没有任何 context 产物，记录 `Context before task: missing`。
@@ -160,7 +160,7 @@ python3 <ledev-task-skill-dir>/scripts/generate_task_index.py --next-id <target-
 
 ## 阶段规则
 
-task 阶段使用稳定英文值，写入 task 文件和 `.ai/state/ledev-task.md`：
+task 阶段使用稳定英文值，写入 task 文件和 `.ai/ledev/state/ledev-task.md`：
 
 - `requirements_draft`：已记录原始诉求，正在总结需求和开放问题。
 - `requirements_confirming`：正在等待用户补充或确认需求边界。
@@ -183,7 +183,7 @@ task 阶段使用稳定英文值，写入 task 文件和 `.ai/state/ledev-task.m
 
 ## 多仓库上下文继承
 
-当 `.ai/scope/scan-scope.md` 或 `.ai/facts/related-repos.md` 声明多仓库上下文时，`ledev-task` 必须继承这些事实，而不是重新猜测仓库关系。
+当 `.ai/ledev/scope/scan-scope.md` 或 `.ai/ledev/facts/related-repos.md` 声明多仓库上下文时，`ledev-task` 必须继承这些事实，而不是重新猜测仓库关系。
 
 执行要求：
 

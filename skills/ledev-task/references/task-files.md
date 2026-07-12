@@ -5,7 +5,7 @@
 在目标项目中使用：
 
 ```text
-.ai/
+.ai/ledev/
   tasks/
     index.md
     T001-short-title.md
@@ -16,10 +16,10 @@
 
 如果目标项目不允许写文件，先说明将写入的路径，并按 dry-run 输出 task 草案。
 
-不要在这些场景创建 `.ai/`：
+不要在这些场景创建 `.ai/ledev/`：
 
 - 当前仓库是 workflow、skill、prompt、agent 配置或类似开发流程仓库，用户正在修改这些工作流本身。
-- 用户明确要求不写入 `.ai/`。
+- 用户明确要求不写入 `.ai/ledev/`。
 - 当前请求只是解释、讨论、评审或规划，不需要落地开发任务记录。
 
 不落盘时仍要在对话中说明 task 语义、类型、范围、验证结果和剩余风险；以 git diff、命令输出和最终回复作为本次工作的记录。
@@ -27,15 +27,16 @@
 ## 编号规则
 
 - 编号格式固定为 `T###`，例如 `T001`、`T023`。
-- 创建新 task 前必须先分配编号，禁止因为 `.ai/tasks/index.md` 缺失、`.ai/tasks/` 目录不存在、当前未发现未完成任务或解析失败而直接使用 `T001`。
+- 创建新 task 前必须先分配编号，禁止因为 `.ai/ledev/tasks/index.md` 缺失、`.ai/ledev/tasks/` 目录不存在、当前未发现未完成任务或解析失败而直接使用 `T001`。
 - 新 task 编号取所有可见历史编号的最大值加一；历史编号包括：
-  - `.ai/tasks/` 下任意文件名中的 `T###`。
-  - `.ai/tasks/` 下 Markdown 文件内容中的 `T###`。
-  - `.ai/tasks/index.md` 中的 `T###` 链接或文本。
-  - `.ai/state/ledev-task.md` 中的 active task、历史记录或 touched files。
-  - git 历史中曾出现过的 `.ai/tasks/T###-*` 路径；如果目标项目不是 git 仓库或历史不可读，记录无法读取历史的事实。
+  - `.ai/ledev/tasks/` 下任意文件名中的 `T###`。
+  - `.ai/ledev/tasks/` 下 Markdown 文件内容中的 `T###`。
+  - `.ai/ledev/tasks/index.md` 中的 `T###` 链接或文本。
+  - `.ai/ledev/state/ledev-task.md` 中的 active task、历史记录或 touched files。
+  - git 历史中曾出现过的 `.ai/ledev/tasks/T###-*` 路径；如果目标项目不是 git 仓库或历史不可读，记录无法读取历史的事实。
+- 迁移兼容：新 task 只写入 `.ai/ledev/tasks/`，但分配编号时必须同时扫描旧版 `.ai/tasks/`、`.ai/tasks/index.md`、`.ai/state/ledev-task.md` 和 git 历史中的 `.ai/tasks/T###-*`，避免从旧目录迁移后复用编号。
 - 不复用已删除、废弃、`obsolete`、重启过、已完成或当前不存在但有记录的编号。
-- 允许写入目标项目 `.ai/` 时，优先运行只读命令获取编号：
+- 允许写入目标项目 `.ai/ledev/` 时，优先运行只读命令获取编号：
 
 ```sh
 python3 <ledev-task-skill-dir>/scripts/generate_task_index.py --next-id <target-project-root>
@@ -43,7 +44,7 @@ python3 <ledev-task-skill-dir>/scripts/generate_task_index.py --next-id <target-
 
 - 如果脚本不可用，必须按上述历史来源手工扫描并取最大值加一；手工扫描结果要写入 task 的 `Decision Log` 或本次对话记录。
 - 文件名使用 `T###-english-short-title.md`。短标题必须是英文小写 hyphen-case，例如 `export-csv`、`fix-login-timeout`；禁止使用中文、空格、下划线或过长描述。
-- 每个 task 文件第一行必须提供返回索引的相对链接：`[返回任务索引](./index.md)`，方便从 task 详情跳回 `.ai/tasks/index.md`。
+- 每个 task 文件第一行必须提供返回索引的相对链接：`[返回任务索引](./index.md)`，方便从 task 详情跳回 `.ai/ledev/tasks/index.md`。
 - 每个 task 文件第二行必须提供模板 marker：完整模板写 `<!-- ledev-task-template: full -->`，轻量模板写 `<!-- ledev-task-template: light -->`。
 - task 文件主标题必须使用中文 / 英文双语格式：`# T### 中文任务标题 / English Task Title`。中文标题在前，英文标题在后，中间固定使用 ` / ` 分隔，例如 `# T001 更新任务索引链接 / Update Task Index Links`。
 - task 文件中的说明性内容以中文为主；字段名、状态值、阶段值、类型值、命令、路径、代码符号、测试名称和短确认 token 可以保留英文。
@@ -189,7 +190,7 @@ python3 <ledev-task-skill-dir>/scripts/lint_task.py --closing <task-file>
 
 ## 索引规则
 
-`.ai/tasks/index.md` 汇总：
+`.ai/ledev/tasks/index.md` 汇总：
 
 - task 总数。
 - 各状态数量。
@@ -207,13 +208,13 @@ python3 <ledev-task-skill-dir>/scripts/lint_task.py --closing <task-file>
 python3 <ledev-task-skill-dir>/scripts/generate_task_index.py <target-project-root>
 ```
 
-脚本从 `<target-project-root>/.ai/tasks/T###-*.md` 读取 task 文件，重建 `<target-project-root>/.ai/tasks/index.md`，并自动生成 task id 和 title 链接。
+脚本从 `<target-project-root>/.ai/ledev/tasks/T###-*.md` 读取 task 文件，重建 `<target-project-root>/.ai/ledev/tasks/index.md`，并自动生成 task id 和 title 链接。
 
 如果脚本不可用，才手工维护索引；手工维护时必须保持统计和 Tasks 表格一致。
 
 ## 状态文件规则
 
-`.ai/state/ledev-task.md` 只记录运行锚点，不替代 task 文件：
+`.ai/ledev/state/ledev-task.md` 只记录运行锚点，不替代 task 文件：
 
 - 当前 active task。
 - 当前阶段。阶段值使用 task 阶段规则。
@@ -223,4 +224,4 @@ python3 <ledev-task-skill-dir>/scripts/generate_task_index.py <target-project-ro
 - validation status。
 - context refresh status：`Context before task`、`Context-impacting changes`、推荐的 `ledev-context` 命令和原因。
 
-其他 skill 必须使用自己的 `.ai/state/<skill-name>.md`，不要共用 `ledev-task` 状态文件。
+其他 skill 必须使用自己的 `.ai/ledev/state/<skill-name>.md`，不要共用 `ledev-task` 状态文件。

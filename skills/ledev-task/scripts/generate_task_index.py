@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate .ai/tasks/index.md from T### task files."""
+"""Generate .ai/ledev/tasks/index.md from T### task files."""
 
 from __future__ import annotations
 
@@ -35,7 +35,7 @@ class Task:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Generate .ai/tasks/index.md from .ai/tasks/T###-*.md files."
+        description="Generate .ai/ledev/tasks/index.md from .ai/ledev/tasks/T###-*.md files."
     )
     parser.add_argument(
         "project_root",
@@ -46,12 +46,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="Print generated index without writing .ai/tasks/index.md.",
+        help="Print generated index without writing .ai/ledev/tasks/index.md.",
     )
     parser.add_argument(
         "--check",
         action="store_true",
-        help="Exit non-zero if .ai/tasks/index.md is missing or stale.",
+        help="Exit non-zero if .ai/ledev/tasks/index.md is missing or stale.",
     )
     parser.add_argument(
         "--unfinished-report",
@@ -261,9 +261,11 @@ def task_ids_from_path(path: Path) -> set[int]:
     return task_ids_from_text(path.name)
 
 
-def task_ids_from_existing_records(project_root: Path, tasks_dir: Path) -> set[int]:
+def task_ids_from_existing_records(project_root: Path, tasks_dirs: list[Path]) -> set[int]:
     ids: set[int] = set()
-    if tasks_dir.exists():
+    for tasks_dir in tasks_dirs:
+        if not tasks_dir.exists():
+            continue
         for path in tasks_dir.rglob("*"):
             ids.update(task_ids_from_path(path))
             if path.is_file() and path.suffix == ".md":
@@ -272,12 +274,16 @@ def task_ids_from_existing_records(project_root: Path, tasks_dir: Path) -> set[i
                 except OSError:
                     pass
 
-    state_path = project_root / ".ai" / "state" / "ledev-task.md"
-    if state_path.exists():
-        try:
-            ids.update(task_ids_from_text(read_text(state_path)))
-        except OSError:
-            pass
+    state_paths = [
+        project_root / ".ai" / "ledev" / "state" / "ledev-task.md",
+        project_root / ".ai" / "state" / "ledev-task.md",
+    ]
+    for state_path in state_paths:
+        if state_path.exists():
+            try:
+                ids.update(task_ids_from_text(read_text(state_path)))
+            except OSError:
+                pass
 
     return ids
 
@@ -294,6 +300,7 @@ def task_ids_from_git_history(project_root: Path) -> set[int]:
                 "--name-only",
                 "--pretty=format:",
                 "--",
+                ".ai/ledev/tasks",
                 ".ai/tasks",
             ],
             check=False,
@@ -310,7 +317,8 @@ def task_ids_from_git_history(project_root: Path) -> set[int]:
 
 
 def next_task_id(project_root: Path, tasks_dir: Path) -> str:
-    ids = task_ids_from_existing_records(project_root, tasks_dir)
+    legacy_tasks_dir = project_root / ".ai" / "tasks"
+    ids = task_ids_from_existing_records(project_root, [tasks_dir, legacy_tasks_dir])
     ids.update(task_ids_from_git_history(project_root))
     next_number = max(ids, default=0) + 1
     return f"T{next_number:03d}"
@@ -319,7 +327,7 @@ def next_task_id(project_root: Path, tasks_dir: Path) -> str:
 def main() -> int:
     args = parse_args()
     project_root = Path(args.project_root).resolve()
-    tasks_dir = project_root / ".ai" / "tasks"
+    tasks_dir = project_root / ".ai" / "ledev" / "tasks"
     index_path = tasks_dir / "index.md"
     tasks = load_tasks(tasks_dir)
 

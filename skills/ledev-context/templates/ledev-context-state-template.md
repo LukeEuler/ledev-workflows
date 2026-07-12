@@ -1,6 +1,6 @@
 # LEDev Context 状态模板
 
-当 `ledev-context` 需要专门维护阶段锚点时，使用这个结构写入 `.ai/state/ledev-context.md`。正文以中文为主；状态值和模式名可保留英文。`.ai/state/` 是运行进度目录，不要把不同 skill 的进度合并到同一个文件。
+当 `ledev-context` 需要专门维护阶段锚点时，使用这个结构写入 `.ai/ledev/state/ledev-context.md`。正文以中文为主；状态值和模式名可保留英文。`.ai/ledev/state/` 是运行进度目录，不要把不同 skill 的进度合并到同一个文件。
 
 ## 阶段锚点
 
@@ -27,20 +27,20 @@
 
 ## 跟踪产物
 
-- `.ai/facts/manifest.md`：missing | active | partial | stale
-- `.ai/scope/scan-scope.md`：missing | draft | needs-confirmation | confirmed | current | stale
-- `.ai/facts/repo-structure.md`：missing | active | partial | stale
-- `.ai/facts/code-inventory.md`：missing | active | partial | stale
-- `.ai/facts/architecture-facts.md`：missing | active | partial | stale
-- `.ai/facts/commands.md`：missing | active | partial | stale
-- `.ai/facts/dependencies.md`：missing | active | partial | stale
-- `.ai/facts/tests.md`：missing | active | partial | stale
-- `.ai/facts/boundaries.md`：missing | active | partial | stale
-- `.ai/facts/related-repos.md`：missing | active | partial | stale | not-applicable
-- `.ai/facts/evidence-index.md`：missing | active | partial | stale
-- `.ai/drafts/project-scan.md`：missing | active | complete | stale | promoted | archived | deleted
-- `.ai/drafts/project-context-draft.md`：missing | active | complete | stale | promoted | archived | deleted
-- `.ai/qa/project-qa.md`：missing | active | complete | needs-follow-up | stale
+- `.ai/ledev/facts/manifest.md`：missing | active | partial | stale
+- `.ai/ledev/scope/scan-scope.md`：missing | draft | needs-confirmation | confirmed | current | stale
+- `.ai/ledev/facts/repo-structure.md`：missing | active | partial | stale
+- `.ai/ledev/facts/code-inventory.md`：missing | active | partial | stale
+- `.ai/ledev/facts/architecture-facts.md`：missing | active | partial | stale
+- `.ai/ledev/facts/commands.md`：missing | active | partial | stale
+- `.ai/ledev/facts/dependencies.md`：missing | active | partial | stale
+- `.ai/ledev/facts/tests.md`：missing | active | partial | stale
+- `.ai/ledev/facts/boundaries.md`：missing | active | partial | stale
+- `.ai/ledev/facts/related-repos.md`：missing | active | partial | stale | not-applicable
+- `.ai/ledev/facts/evidence-index.md`：missing | active | partial | stale
+- `.ai/ledev/drafts/project-scan.md`：missing | active | complete | stale | promoted | archived | deleted
+- `.ai/ledev/drafts/project-context-draft.md`：missing | active | complete | stale | promoted | archived | deleted
+- `.ai/ledev/qa/project-qa.md`：missing | active | complete | needs-follow-up | stale
 
 ## 源码快照
 
@@ -68,10 +68,10 @@
 
 ## 最终产物
 
-- `.ai/project-context.md`：missing | active | stale | current
-- `.ai/project-context.html`：missing | active | stale | current
-- `.ai/drafts/project-context.<timestamp>.html`：missing | available | pruned
-- `.ai/state/ledev-context.md`：missing | active | stale | current
+- `.ai/ledev/project-context.md`：missing | active | stale | current
+- `.ai/ledev/project-context.html`：missing | active | stale | current
+- `.ai/ledev/drafts/project-context.<timestamp>.html`：missing | available | pruned
+- `.ai/ledev/state/ledev-context.md`：missing | active | stale | current
 - Markdown 人类项目文档：missing | partial | stale | current
 - HTML 人类项目文档：missing | partial | stale | current
 

@@ -13,7 +13,7 @@ description: 面向中文用户。用于对 Git 项目中已经 commit 的线性
 
 ## 读取 Reference
 
-- 跨 LEDev skill 的中文优先、git、`.ai/`、路径可移植性和多仓库默认边界：读 `../_shared/references/shared-rules.md`。
+- 跨 LEDev skill 的中文优先、git、`.ai/ledev/`、路径可移植性和多仓库默认边界：读 `../_shared/references/shared-rules.md`。
 - Git 范围、合法性检查和拒绝条件：读 `references/git-range.md`。
 - findings 严重级别、证据和输出要求：读 `references/findings.md`。
 - 用户意图识别和沟通规则：读 `references/intent.md`。
@@ -59,8 +59,8 @@ description: 面向中文用户。用于对 Git 项目中已经 commit 的线性
    - 失败时停止 review，给出最小修复命令提示。
 
 2. 建立上下文和意图。
-   - 普通项目中，先按 `references/report.md` 确保 `.ai/reviews/` 和 `.ai/state/ledev-review.md` 已加入 `.gitignore`；当前仓库是 workflow/skill 仓库或不落盘场景时跳过。
-   - 读取 `.ai/project-context.md`、`.ai/scope/scan-scope.md`、`.ai/facts/`、`.ai/state/ledev-*.md` 和相关 task 文件，存在则优先使用。
+   - 普通项目中，先按 `references/report.md` 确保 `.ai/ledev/reviews/` 和 `.ai/ledev/state/ledev-review.md` 已加入 `.gitignore`；当前仓库是 workflow/skill 仓库或不落盘场景时跳过。
+   - 读取 `.ai/ledev/project-context.md`、`.ai/ledev/scope/scan-scope.md`、`.ai/ledev/facts/`、`.ai/ledev/state/ledev-*.md` 和相关 task 文件，存在则优先使用。
    - 从用户说明、commit message、task、issue/PR 描述、测试变更和代码差异提取用户意图。
    - 如果无法判断变更目的，或目的与 diff 明显不一致，先向用户提问；不要臆测业务正确性。
 
@@ -83,7 +83,7 @@ description: 面向中文用户。用于对 Git 项目中已经 commit 的线性
    - 风格意见只在影响正确性、维护成本或一致性契约时提出。
 
 6. 记录 review。
-   - 写入或更新 `.ai/reviews/` 和 `.ai/state/ledev-review.md`，除非当前仓库是 workflow/skill 仓库或用户要求不落盘。
+   - 写入或更新 `.ai/ledev/reviews/` 和 `.ai/ledev/state/ledev-review.md`，除非当前仓库是 workflow/skill 仓库或用户要求不落盘。
    - 记录 review 范围、用户意图、实际改造、达成情况、findings、验证情况、未确认问题和后续建议。
 
 ## 与其他 LEDev Skill 的关系

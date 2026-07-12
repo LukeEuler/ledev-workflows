@@ -27,20 +27,20 @@
 默认写入：
 
 ```text
-.ai/scope/scan-scope.md
+.ai/ledev/scope/scan-scope.md
 ```
 
 该文件是长期可复用的扫描策略。重跑时如果它仍然 current，可以直接复用，不必重复询问用户。
 
-多仓库上下文仍只在 `Primary repo` 写入本文件。`Related repos` 的路径、角色、扫描深度、写入策略和版本关系都记录在主仓库的 `.ai/scope/scan-scope.md` 中。
+多仓库上下文仍只在 `Primary repo` 写入本文件。`Related repos` 的路径、角色、扫描深度、写入策略和版本关系都记录在主仓库的 `.ai/ledev/scope/scan-scope.md` 中。
 
-`scan-scope.md` 是长期可复用产物，不应写本机绝对路径。目标路径、关联仓库路径和证据路径都使用相对 `Primary repo` 的路径或稳定仓库别名；本机绝对路径如需保留，只能写入 `.ai/drafts/local-paths.md`。
+`scan-scope.md` 是长期可复用产物，不应写本机绝对路径。目标路径、关联仓库路径和证据路径都使用相对 `Primary repo` 的路径或稳定仓库别名；本机绝对路径如需保留，只能写入 `.ai/ledev/drafts/local-paths.md`。
 
 ## 多仓库范围
 
 多仓库 scope 必须区分：
 
-- `Primary repo`：当前要开发、修复、验证或生成上下文的目标项目；`.ai/` 产物默认只写入这里。
+- `Primary repo`：当前要开发、修复、验证或生成上下文的目标项目；`.ai/ledev/` 产物默认只写入这里。
 - `Related repos`：为理解当前目标项目需要读取的本地兄弟仓库、上游库、下游服务、协议仓库、参考实现或外部工作区成员。
 
 每个 `Related repo` 至少记录：
@@ -83,13 +83,13 @@ scope 需要简单交互确认。
 SCOPE-001: 请确认 deep scan、shallow record 和 exclude 范围是否正确。
 ```
 
-用户可以编辑 `.ai/scope/scan-scope.md` 回答，也可以 inline 回答：
+用户可以编辑 `.ai/ledev/scope/scan-scope.md` 回答，也可以 inline 回答：
 
 ```text
 SCOPE-001: yes. Exclude tmp/ as well.
 ```
 
-答案要合并回 `.ai/scope/scan-scope.md`。
+答案要合并回 `.ai/ledev/scope/scan-scope.md`。
 
 ## stale 判断
 
@@ -109,7 +109,7 @@ scope stale 时，不要直接执行 scan；先追加新的 `SCOPE-###` 确认�
 
 ## scan 前置条件
 
-`scan` 必须读取 `.ai/scope/scan-scope.md`。
+`scan` 必须读取 `.ai/ledev/scope/scan-scope.md`。
 
 只有满足以下条件之一，才能进入 scan：
 

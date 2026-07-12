@@ -2,9 +2,9 @@
   "schema": "ledev-context.project-context-html-data.v1",
   "description": "AI 在 html 阶段生成的中间数据。脚本读取 placeholders，并读取 project_owned_scope_items、project_out_of_scope_items、business_flows、data_domains、data_entities、data_relations、state_machine、security_controls、crypto_scenarios、security_concerns、dependency_links、external_dependencies、configuration_controls、onboarding_tasks、onboarding_reading_path、recovery_scenarios、recovery_principles、project_conventions、project_specific_matrix、project_specific_notes 生成结构化 HTML；其他字段用于人工审阅和后续扩展。",
   "sources": {
-    "facts": ".ai/facts/",
-    "qa": ".ai/qa/project-qa.md",
-    "project_context": ".ai/project-context.md"
+    "facts": ".ai/ledev/facts/",
+    "qa": ".ai/ledev/qa/project-qa.md",
+    "project_context": ".ai/ledev/project-context.md"
   },
   "generation_notes": {
     "value_rules": [
@@ -313,8 +313,8 @@
     "HERO_TAG_4": "第四个主要组件或外部依赖短标签；不足时写“未确认：标签 4”。",
     "HERO_TAG_5": "第五个主要组件或外部依赖短标签；不足时写“未确认：标签 5”。",
     "HERO_TAG_6": "第六个主要组件或外部依赖短标签；不足时写“未确认：标签 6”。",
-    "PROJECT_POSITIONING": "一句话定位；优先来自 .ai/project-context.md 的“1. 项目定位”，说明项目解决什么问题。",
-    "CORE_CAPABILITY_1_NAME": "核心能力名称 1；必须覆盖 .ai/project-context.md “5. 业务能力与模块划分”中列出的能力。",
+    "PROJECT_POSITIONING": "一句话定位；优先来自 .ai/ledev/project-context.md 的“1. 项目定位”，说明项目解决什么问题。",
+    "CORE_CAPABILITY_1_NAME": "核心能力名称 1；必须覆盖 .ai/ledev/project-context.md “5. 业务能力与模块划分”中列出的能力。",
     "CORE_CAPABILITY_1_SUMMARY": "一句话说明该能力的定位或解决的问题；优先来自 MD 的“解决的问题”列。",
     "CORE_CAPABILITY_2_NAME": "核心能力名称 2；不足时写“未确认：核心能力 2”。",
     "CORE_CAPABILITY_2_SUMMARY": "一句话说明该能力的定位或解决的问题。",

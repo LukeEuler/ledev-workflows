@@ -13,11 +13,11 @@ description: 不可用：该 skill 尚未完成开发和验证，不应被用于
 
 Read, when present:
 
-- `.ai/project-context.md`
-- `.ai/scope/scan-scope.md`
-- `.ai/facts/related-repos.md`
-- `.ai/state/ledev-test.md`
-- relevant `.ai/state/ledev-*.md` files when validating prior implementation or bugfix work
+- `.ai/ledev/project-context.md`
+- `.ai/ledev/scope/scan-scope.md`
+- `.ai/ledev/facts/related-repos.md`
+- `.ai/ledev/state/ledev-test.md`
+- relevant `.ai/ledev/state/ledev-*.md` files when validating prior implementation or bugfix work
 - language rules identified by `ledev-context`
 
 If `ledev-context` declares `Primary repo` and `Related repos`, inherit that multi-repo context. Validation selection must use the primary repo's actual resolved dependency versions; related repos are read-only references unless the user explicitly asks for cross-repo validation or modification.
@@ -47,7 +47,7 @@ If `ledev-context` declares `Primary repo` and `Related repos`, inherit that mul
    - Prefer deterministic regression coverage for bug fixes.
 
 4. Coordinate state.
-   - Record commands, pass/fail status, blockers, and residual risk in `.ai/state/ledev-test.md` when present or useful.
+   - Record commands, pass/fail status, blockers, and residual risk in `.ai/ledev/state/ledev-test.md` when present or useful.
    - Do not mark full validation complete if only focused validation ran.
 
 5. Diagnose failures.

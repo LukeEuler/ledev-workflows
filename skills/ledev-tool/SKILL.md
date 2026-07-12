@@ -13,11 +13,11 @@ description: 不可用：该 skill 尚未完成开发和验证，不应被用于
 
 Read, when present:
 
-- `.ai/project-context.md`
-- `.ai/scope/scan-scope.md`
-- `.ai/facts/related-repos.md`
-- `.ai/state/ledev-tool.md`
-- relevant `.ai/state/ledev-*.md` files when the tool supports another skill workflow
+- `.ai/ledev/project-context.md`
+- `.ai/ledev/scope/scan-scope.md`
+- `.ai/ledev/facts/related-repos.md`
+- `.ai/ledev/state/ledev-tool.md`
+- relevant `.ai/ledev/state/ledev-*.md` files when the tool supports another skill workflow
 - language rules identified by `ledev-context`
 
 If `ledev-context` declares `Primary repo` and `Related repos`, inherit that multi-repo context. Generated tools default to the primary repo write boundary; related repos can provide API/protocol/reference facts but must not be modified unless the user explicitly requests a cross-repo tool.
@@ -47,7 +47,7 @@ If `ledev-context` declares `Primary repo` and `Related repos`, inherit that mul
    - Do not overwrite user changes without an explicit flag or confirmation path.
 
 4. Coordinate with context.
-   - If the tool becomes part of normal workflow, update `.ai/project-context.md` or project docs with its command.
+   - If the tool becomes part of normal workflow, update `.ai/ledev/project-context.md` or project docs with its command.
    - Record tool purpose, invocation, and output location.
 
 5. Validate.
