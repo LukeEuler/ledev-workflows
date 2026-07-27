@@ -112,7 +112,7 @@ python3 <ledev-task-skill-dir>/scripts/generate_task_index.py --next-id <target-
 - 若未运行验证，必须说明原因和剩余风险；通常不要标记 `done`。
 - 若 agent 能执行的实现和验证均已完成，只剩人工、运行时或目标环境验收，将 task 状态设为 `awaiting_acceptance`，在 `Handoff / Next` 记录具体验收动作；验收跑通后再改为 `done`。
 - 若验证和必要验收已完成，更新 task 状态为 `done`；否则按上条设为 `awaiting_acceptance`。随后同步索引和 `.ai/ledev/state/ledev-task.md`。
-- 同步索引时优先运行 `scripts/generate_task_index.py`，确保 `## Tasks` 表格里的 task id 和 title 都链接到对应 task 文件。
+- 同步索引时优先运行 `scripts/generate_task_index.py`，确保 `## Tasks` 表格里只有 task id 链接到对应 task 文件，Title 列保留纯文本。
 - 最终回复包含文件变更、验证命令、结果、`ledev-context` 刷新建议和剩余风险。
 
 ## Context Refresh

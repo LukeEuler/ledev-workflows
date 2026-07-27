@@ -83,7 +83,7 @@ description: 面向中文用户。用于把代码开发、bug 修复、重构、
 - 低风险 `chore`、`docs`、`tooling`、`config` task 可以使用 `templates/task-light-template.md`，但仍必须记录用户诉求、需求理解、范围、方案、实现活动、验证结果和后续事项。
 - 每个 task 必须有 `Type`。优先使用 `feature`（开发）或 `bugfix`（修复 bug）；其他常见类型见 `references/task-files.md`。
 - `restart` 不应删除历史。追加重启事件，说明为什么上一阶段不适用、保留哪些产物、废弃哪些假设。
-- `.ai/ledev/tasks/index.md` 是状态汇总，不替代单个 task 详情。更新 task 状态后同步更新索引；索引优先由 `python3 <skill>/scripts/generate_task_index.py <target-project-root>` 生成，确保 Tasks 表格里的 task id 和 title 都链接到对应 task 文件。
+- `.ai/ledev/tasks/index.md` 是状态汇总，不替代单个 task 详情。更新 task 状态后同步更新索引；索引优先由 `python3 <skill>/scripts/generate_task_index.py <target-project-root>` 生成，确保 Tasks 表格里只有 task id 链接到对应 task 文件，Title 列保留纯文本。
 
 ### 实现与修复
 

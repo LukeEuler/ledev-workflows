@@ -193,7 +193,7 @@ def render_index(tasks: list[Task]) -> str:
                 [
                     task_link(task, task.task_id),
                     escape_cell(task.task_type),
-                    task_link(task, task.title),
+                    escape_cell(task.title),
                     escape_cell(status_icon(task.status)),
                 ]
             )
@@ -245,7 +245,7 @@ def render_unfinished_report(tasks: list[Task]) -> str:
                     [
                         task_link(task, task.task_id),
                         escape_cell(task.task_type),
-                        task_link(task, task.title),
+                        escape_cell(task.title),
                         escape_cell(status_icon(task.status)),
                     ]
                 )
@@ -274,7 +274,7 @@ def render_unfinished_report(tasks: list[Task]) -> str:
                     [
                         task_link(task, task.task_id),
                         escape_cell(task.task_type),
-                        task_link(task, task.title),
+                        escape_cell(task.title),
                         escape_cell(status_icon(task.status)),
                     ]
                 )

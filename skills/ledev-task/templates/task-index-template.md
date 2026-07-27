@@ -8,7 +8,7 @@
 | Task | Type | Title | Status |
 | --- | --- | --- | --- |
 <!-- Rows use linked task id and linked title, for example:
-| [T001](./T001-english-short-title.md) | feature | [中文任务标题 / English Task Title](./T001-english-short-title.md) | 🔄 |
+| [T001](./T001-english-short-title.md) | feature | 中文任务标题 / English Task Title | 🔄 |
 -->
 
 <!-- Prefer generating this file with:

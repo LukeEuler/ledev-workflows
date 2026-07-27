@@ -205,7 +205,7 @@ python3 <ledev-task-skill-dir>/scripts/lint_task.py --closing <task-file>
 - 各状态数量。
 - task 列表：编号、类型、标题、状态。
 - `## Tasks` 表格中，`Task` 列的 task id 必须链接到对应 task 文件，例如 `[T001](./T001-export-csv.md)`。
-- `## Tasks` 表格中，`Title` 列的标题也必须链接到同一个 task 文件，例如 `[导出 CSV / Export CSV](./T001-export-csv.md)`。
+- `## Tasks` 表格中，`Title` 列只写标题纯文本，不加链接。
 - `## Tasks` 表格中的 `Status` 列使用常见彩色状态图标展示；状态统计区必须保留“图标 + 原始状态值”的映射，方便识别。
 - 默认状态图标：`⬜` = `todo`，`🔄` = `in_progress`，`🔵` = `awaiting_acceptance`，`⛔` = `blocked`，`✅` = `done`，`🗑️` = `obsolete`。
 - 状态图标必须是纯文本图标，不使用 HTML 标签或内联样式。
@@ -217,7 +217,7 @@ python3 <ledev-task-skill-dir>/scripts/lint_task.py --closing <task-file>
 python3 <ledev-task-skill-dir>/scripts/generate_task_index.py <target-project-root>
 ```
 
-脚本从 `<target-project-root>/.ai/ledev/tasks/T###-*.md` 读取 task 文件，重建 `<target-project-root>/.ai/ledev/tasks/index.md`，并自动生成 task id 和 title 链接。
+脚本从 `<target-project-root>/.ai/ledev/tasks/T###-*.md` 读取 task 文件，重建 `<target-project-root>/.ai/ledev/tasks/index.md`，并自动生成 task id 链接；Title 列保留纯文本。
 
 如果脚本不可用，才手工维护索引；手工维护时必须保持统计和 Tasks 表格一致。
 
