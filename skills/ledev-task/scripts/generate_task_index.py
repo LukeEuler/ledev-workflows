@@ -14,10 +14,18 @@ from pathlib import Path
 TASK_FILE_RE = re.compile(r"^(T[0-9]{3,})-.+\.md$")
 TASK_ID_RE = re.compile(r"\bT([0-9]{3,})\b")
 FIELD_RE = re.compile(r"^- ([A-Za-z][A-Za-z ]*):\s*(.*)$")
-KNOWN_STATUSES = ("todo", "in_progress", "blocked", "done", "obsolete")
+KNOWN_STATUSES = (
+    "todo",
+    "in_progress",
+    "awaiting_acceptance",
+    "blocked",
+    "done",
+    "obsolete",
+)
 STATUS_ICONS = {
     "todo": "⬜",
     "in_progress": "🔄",
+    "awaiting_acceptance": "🔵",
     "blocked": "⛔",
     "done": "✅",
     "obsolete": "🗑️",
@@ -199,7 +207,11 @@ def render_unfinished_report(tasks: list[Task]) -> str:
     counts = status_counts(tasks)
     unfinished = [
         task for task in sorted(tasks, key=task_sort_key)
-        if task.status not in {"done", "obsolete"}
+        if task.status not in {"awaiting_acceptance", "done", "obsolete"}
+    ]
+    awaiting = [
+        task for task in sorted(tasks, key=task_sort_key)
+        if task.status == "awaiting_acceptance"
     ]
     status_parts = [
         f"{status_icon(status)} `{status}` {counts.get(status, 0)}"
@@ -227,6 +239,35 @@ def render_unfinished_report(tasks: list[Task]) -> str:
             ]
         )
         for task in unfinished:
+            lines.append(
+                "| "
+                + " | ".join(
+                    [
+                        task_link(task, task.task_id),
+                        escape_cell(task.task_type),
+                        task_link(task, task.title),
+                        escape_cell(status_icon(task.status)),
+                    ]
+                )
+                + " |"
+            )
+    lines.extend(
+        [
+            "",
+            "## Awaiting Acceptance",
+            "",
+        ]
+    )
+    if not awaiting:
+        lines.append("- None.")
+    else:
+        lines.extend(
+            [
+                "| Task | Type | Title | Status |",
+                "| --- | --- | --- | --- |",
+            ]
+        )
+        for task in awaiting:
             lines.append(
                 "| "
                 + " | ".join(

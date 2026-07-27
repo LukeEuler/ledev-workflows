@@ -5,6 +5,7 @@
 
 - Type: chore
 - Status: todo
+- Status values: todo | in_progress | awaiting_acceptance | blocked | done | obsolete
 - Phase: requirements_draft
 - Created: YYYY-MM-DD
 - Updated: YYYY-MM-DD

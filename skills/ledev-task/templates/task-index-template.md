@@ -1,7 +1,7 @@
 # LEDev Tasks
 
 - Total: 0
-- Status: ⬜ `todo` 0 · 🔄 `in_progress` 0 · ⛔ `blocked` 0 · ✅ `done` 0 · 🗑️ `obsolete` 0
+- Status: ⬜ `todo` 0 · 🔄 `in_progress` 0 · 🔵 `awaiting_acceptance` 0 · ⛔ `blocked` 0 · ✅ `done` 0 · 🗑️ `obsolete` 0
 
 ## Tasks
 

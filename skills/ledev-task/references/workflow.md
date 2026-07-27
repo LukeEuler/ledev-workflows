@@ -26,7 +26,8 @@
 - 检查目标项目是否存在 `.ai/ledev/tasks/`。
 - 读取 `.ai/ledev/tasks/index.md`；缺失或明显 stale 时，优先运行 `python3 <ledev-task-skill-dir>/scripts/generate_task_index.py <target-project-root>` 刷新索引。若当前场景不允许写文件，使用 `--dry-run` 或 `--unfinished-report` 只读输出。
 - 展示 task 总数和状态统计。
-- 列出未完成任务。未完成任务指状态不是 `done` 且不是 `obsolete` 的 task，通常包括 `todo`、`in_progress` 和 `blocked`。
+- 列出可继续推进的未完成任务。未完成任务指状态不是 `awaiting_acceptance`、`done` 且不是 `obsolete` 的 task，通常包括 `todo`、`in_progress` 和 `blocked`。
+- 将 `awaiting_acceptance` task 作为待验收任务单独列出；它不进入催办式未完成清单，但必须出现在状态统计和待验收分组中。
 - 询问用户下一步意图，给出简短可执行选项，例如：`continue T###`、`new <需求>`、`restart T###`、`close T###`、`block T###`。
 - 如果识别到唯一 `in_progress` task，把推荐命令实例化为具体编号，例如 `continue T003`，不要只给 `continue T###` 占位符。
 - 不进入需求澄清、方案设计或实现；必须等用户明确下一步操作。
@@ -70,8 +71,9 @@ python3 <ledev-task-skill-dir>/scripts/generate_task_index.py --next-id <target-
 
 - 对范围很小、需求明确、不会影响公共 API、数据格式、权限、安全边界或跨模块契约的任务，可以压缩提问轮次。
 - 对 `chore`、`docs`、`tooling`、`config` 等低风险维护任务，可以使用 `templates/task-light-template.md`。如果执行中发现风险升高，切回完整模板并补齐缺失字段。
-- 即使压缩流程，也必须输出确认摘要和验证计划，并在用户确认后再实现。
-- 用户明确要求“直接实现”时，可以减少问题数量，但仍必须记录关键假设并停在最终确认点；如果发现高风险或歧义，必须暂停确认。
+- 除 fast-path 外，即使压缩流程，也必须输出确认摘要和验证计划，并在用户确认后再实现。
+- 用户明确要求“直接实现”，且请求已给出 what+where、无方案分支、改动极小、低风险（typo、一行 fix、局部重命名、纯文案或单行配置），可以走 fast-path：跳过隔轮确认，在同一轮记录关键假设、范围和验证计划后直接实现。
+- fast-path 不适用于公共 API、数据格式、权限、安全边界、迁移、跨模块契约、跨仓改动、依赖升级或无法用聚焦验证覆盖的变更；发现歧义或风险升高时，必须暂停并回到最终确认点。
 
 ## continue / 继续
 
@@ -93,6 +95,9 @@ python3 <ledev-task-skill-dir>/scripts/generate_task_index.py --next-id <target-
 
 - 保留原 task 编号和文件。
 - 在 `Decision Log` 追加 restart 事件，写明原因、废弃假设、保留产物和新方向。
+- 区分重启类型：补丁式重启是在原目标和原结论基本成立时追加小修正；推翻式重启是原结论、方案或跨多文件实现方向被推翻。
+- 补丁式重启可以继续使用原 task；推翻式重启或影响面明显扩大时，倾向新建后续 T###，并在原 task 的 `Handoff / Next` 或 `Decision Log` 留下指向。
+- 反复重启、完成很久后才发现的问题，倾向封盘原 task，把 follow-up 独立成新 task，避免单个 task 文件无限膨胀。
 - 将状态设为 `in_progress`。
 - 重新做必要的上下文观察和需求确认。
 - 不删除历史实现记录；如果需要回滚代码，必须得到用户明确指令或只修改当前 agent 自己刚做的改动。
@@ -103,9 +108,10 @@ python3 <ledev-task-skill-dir>/scripts/generate_task_index.py --next-id <target-
 
 - 确认实现记录和验证记录完整。
 - 确认 `Context Refresh` 已记录：本 task 是否影响 `ledev-context`、原因和具体推荐命令。
-- 优先运行 `python3 <ledev-task-skill-dir>/scripts/lint_task.py --closing <task-file>`；脚本失败时，先补齐 task 记录或说明不能 close 的原因。
+- 优先运行 `python3 <ledev-task-skill-dir>/scripts/lint_task.py --closing <task-file>`；必要时传 `--repo <target-project-root>`。脚本会用 unstaged、staged 和 untracked git 改动对账 `Implementation Log` / `Activity Log`，默认只打印 WARN，`--strict` 才因真实改动未记录而失败。脚本失败时，先补齐 task 记录或说明不能 close 的原因。
 - 若未运行验证，必须说明原因和剩余风险；通常不要标记 `done`。
-- 更新 task 状态为 `done`，同步索引和 `.ai/ledev/state/ledev-task.md`。
+- 若 agent 能执行的实现和验证均已完成，只剩人工、运行时或目标环境验收，将 task 状态设为 `awaiting_acceptance`，在 `Handoff / Next` 记录具体验收动作；验收跑通后再改为 `done`。
+- 若验证和必要验收已完成，更新 task 状态为 `done`；否则按上条设为 `awaiting_acceptance`。随后同步索引和 `.ai/ledev/state/ledev-task.md`。
 - 同步索引时优先运行 `scripts/generate_task_index.py`，确保 `## Tasks` 表格里的 task id 和 title 都链接到对应 task 文件。
 - 最终回复包含文件变更、验证命令、结果、`ledev-context` 刷新建议和剩余风险。
 
@@ -176,11 +182,11 @@ task 阶段使用稳定英文值，写入 task 文件和 `.ai/ledev/state/ledev-
 
 阶段推进要求：
 
-- `new` 必须从需求阶段开始；除低风险压缩流程外，不得跳过需求总结、开放问题、方案说明和最终确认。
+- `new` 必须从需求阶段开始；除 fast-path 外，不得跳过需求总结、开放问题、方案说明和最终确认。
 - 从 `requirements_confirmed` 到 `solution_options` 前，必须完成必要的代码上下文观察。
 - 从 `solution_options` 到 `solution_confirmed` 必须有后续用户消息中的选择、认可或明确确认。
 - 从 `solution_confirmed` 到 `implementing` 前，最终执行摘要必须包含需求、不做范围、采用方案、预计修改位置、验证计划和风险。
-- 创建或更新 task 草案的同一轮不得进入 `implementing`；最早只能在用户看到最终执行摘要后，用下一条消息确认再进入实现。
+- 创建或更新 task 草案的同一轮不得进入 `implementing`；最早只能在用户看到最终执行摘要后，用下一条消息确认再进入实现。fast-path 例外必须满足“需求确认规则”中的窄触发条件，并把关键假设写入 task。
 - 如果实现中发现需求或方案判断错误，回退到相应阶段并记录原因。
 
 ## 多仓库上下文继承

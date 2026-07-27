@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -18,6 +19,10 @@ PLACEHOLDER_RE = re.compile(
 )
 CONTEXT_REFRESH_COMMAND_RE = re.compile(
     r"Recommended command:\s*(not-required|\$ledev-context\s+(?:status|refresh|scope|document))\b",
+)
+BACKTICK_RE = re.compile(r"`([^`\n]+)`")
+PATH_TOKEN_RE = re.compile(
+    r"(?<![\w./-])([A-Za-z0-9_.@+-]+(?:/[A-Za-z0-9_.@()+-]+)+)(?=$|[\s,;:)。；，])"
 )
 
 FULL_SECTIONS = (
@@ -58,6 +63,18 @@ def parse_args() -> argparse.Namespace:
         "--closing",
         action="store_true",
         help="Require implementation/activity and validation logs to be complete enough to close.",
+    )
+    parser.add_argument(
+        "--repo",
+        help=(
+            "Target project root for git diff reconciliation. Defaults to the "
+            "project root inferred from .ai/ledev/tasks/<task-file>."
+        ),
+    )
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="Fail --closing when git changed files are missing from the implementation log.",
     )
     return parser.parse_args()
 
@@ -134,6 +151,109 @@ def context_refresh_meaningful(value: str) -> bool:
     return bool(CONTEXT_REFRESH_COMMAND_RE.search(value))
 
 
+def infer_repo_root(task_path: Path) -> Path:
+    resolved = task_path.resolve()
+    parent = resolved.parent
+    if (
+        parent.name == "tasks"
+        and parent.parent.name == "ledev"
+        and parent.parent.parent.name == ".ai"
+    ):
+        return parent.parent.parent.parent
+    return Path.cwd()
+
+
+def git_output(repo_root: Path, args: list[str]) -> tuple[int, str]:
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(repo_root), *args],
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+    except (OSError, ValueError):
+        return 1, ""
+    return result.returncode, result.stdout
+
+
+def changed_files(repo_root: Path) -> tuple[set[str], str | None]:
+    code, _ = git_output(repo_root, ["rev-parse", "--is-inside-work-tree"])
+    if code != 0:
+        return set(), f"skip git diff reconciliation: {repo_root} is not a git repository"
+
+    changed: set[str] = set()
+    for args in (["diff", "--name-only"], ["diff", "--name-only", "--cached"]):
+        code, output = git_output(repo_root, args)
+        if code != 0:
+            return set(), "skip git diff reconciliation: git diff failed"
+        changed.update(line.strip() for line in output.splitlines() if line.strip())
+
+    code, output = git_output(repo_root, ["status", "--porcelain"])
+    if code != 0:
+        return set(), "skip git diff reconciliation: git status failed"
+    for line in output.splitlines():
+        if line.startswith("?? "):
+            untracked = line[3:].strip()
+            path = repo_root / untracked
+            if untracked.endswith("/") and path.is_dir():
+                changed.update(
+                    child.relative_to(repo_root).as_posix()
+                    for child in path.rglob("*")
+                    if child.is_file()
+                )
+            else:
+                changed.add(untracked)
+    return {path for path in changed if not is_ledev_task_artifact(path)}, None
+
+
+def is_ledev_task_artifact(path: str) -> bool:
+    return (
+        path.startswith(".ai/ledev/tasks/")
+        or path == ".ai/ledev/state/ledev-task.md"
+        or path.startswith(".ai/tasks/")
+        or path == ".ai/state/ledev-task.md"
+    )
+
+
+def normalize_path_token(value: str) -> str | None:
+    token = value.strip().strip(".,;:()[]{}<>，。；：")
+    if token.startswith("./"):
+        token = token[2:]
+    if not token or token.startswith("$") or " " in token:
+        return None
+    if "/" not in token:
+        return None
+    return token
+
+
+def implementation_paths(activity: str) -> set[str]:
+    paths: set[str] = set()
+    for match in BACKTICK_RE.finditer(activity):
+        token = normalize_path_token(match.group(1))
+        if token:
+            paths.add(token)
+    for match in PATH_TOKEN_RE.finditer(activity):
+        token = normalize_path_token(match.group(1))
+        if token and Path(token).suffix:
+            paths.add(token)
+    return paths
+
+
+def diff_reconciliation_warnings(repo_root: Path, activity: str) -> tuple[list[str], list[str]]:
+    changed, skip_reason = changed_files(repo_root)
+    if skip_reason:
+        return [f"WARN: {skip_reason}"], []
+    recorded = implementation_paths(activity)
+    changed_unmentioned = sorted(changed - recorded)
+    recorded_unchanged = sorted(recorded - changed)
+    warnings = [
+        *(f"WARN: changed but not in Implementation Log: {path}" for path in changed_unmentioned),
+        *(f"WARN: in Implementation Log but no git change: {path}" for path in recorded_unchanged),
+    ]
+    return warnings, changed_unmentioned
+
+
 def main() -> int:
     args = parse_args()
     task_path = Path(args.task_file)
@@ -192,6 +312,13 @@ def main() -> int:
         context_refresh = section_map.get("Context Refresh", "")
         if not context_refresh_meaningful(context_refresh):
             problems.append("Context Refresh must include a concrete recommended command for close")
+
+        repo_root = Path(args.repo).resolve() if args.repo else infer_repo_root(task_path)
+        warnings, changed_unmentioned = diff_reconciliation_warnings(repo_root, activity)
+        for warning in warnings:
+            print(warning, file=sys.stderr)
+        if args.strict and changed_unmentioned:
+            problems.append("Implementation Log does not mention all changed files")
 
     if problems:
         for problem in problems:

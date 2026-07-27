@@ -55,11 +55,18 @@ task 状态使用稳定英文值，中文说明可以写在旁边：
 
 - `todo`：已创建，尚未开始实现。
 - `in_progress`：正在理解、设计、实现或验证。
+- `awaiting_acceptance`：待验收；代码线交付完成，agent 能执行的验证已执行或已记录未执行原因，只剩人工、运行时或目标环境验收。
 - `blocked`：缺少用户决策、权限、依赖、环境或外部条件。
 - `done`：实现、验证和收尾已完成。
 - `obsolete`：任务不再适用，但编号和历史保留。
 
 `restart` 是事件，不是长期状态。重启后通常回到 `in_progress`。
+
+状态边界：
+
+- 只剩人工、运行时或目标环境验收时，用 `awaiting_acceptance`，不要继续挂 `in_progress`。
+- 缺少外部条件、权限、依赖、用户决策或环境，导致 agent 无法继续推进时，用 `blocked`。
+- 验证和必要验收已经跑通、记录完整后，才用 `done`。
 
 ## task 阶段
 
@@ -163,6 +170,8 @@ close 前优先运行：
 python3 <ledev-task-skill-dir>/scripts/lint_task.py --closing <task-file>
 ```
 
+脚本会检查缺失字段、实现/活动记录、验证记录、`Context Refresh`，并用 git unstaged、staged 和 untracked 改动对账 `Implementation Log` / `Activity Log`。默认对账不一致只打印 WARN；需要把“真实改动未记录”作为失败时，加 `--strict`；task 文件不在标准 `.ai/ledev/tasks/` 路径下时，加 `--repo <target-project-root>`。
+
 脚本失败时不要标记 `done`，先补齐缺失字段、实现/活动记录或验证记录。
 
 ## Context Refresh 规则
@@ -198,7 +207,7 @@ python3 <ledev-task-skill-dir>/scripts/lint_task.py --closing <task-file>
 - `## Tasks` 表格中，`Task` 列的 task id 必须链接到对应 task 文件，例如 `[T001](./T001-export-csv.md)`。
 - `## Tasks` 表格中，`Title` 列的标题也必须链接到同一个 task 文件，例如 `[导出 CSV / Export CSV](./T001-export-csv.md)`。
 - `## Tasks` 表格中的 `Status` 列使用常见彩色状态图标展示；状态统计区必须保留“图标 + 原始状态值”的映射，方便识别。
-- 默认状态图标：`⬜` = `todo`，`🔄` = `in_progress`，`⛔` = `blocked`，`✅` = `done`，`🗑️` = `obsolete`。
+- 默认状态图标：`⬜` = `todo`，`🔄` = `in_progress`，`🔵` = `awaiting_acceptance`，`⛔` = `blocked`，`✅` = `done`，`🗑️` = `obsolete`。
 - 状态图标必须是纯文本图标，不使用 HTML 标签或内联样式。
 - task 文件路径使用相对 `index.md` 的链接，优先使用 `./T###-english-short-title.md`；链接目标必须和实际英文文件名一致。
 

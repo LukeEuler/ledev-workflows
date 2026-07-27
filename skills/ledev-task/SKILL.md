@@ -22,7 +22,7 @@ description: 面向中文用户。用于把代码开发、bug 修复、重构、
   - `templates/task-index-template.md`
   - `templates/ledev-task-state-template.md`
 - 维护 task 索引时优先使用脚本：`scripts/generate_task_index.py`。
-- close 前检查 task 完整性优先使用脚本：`scripts/lint_task.py --closing <task-file>`。
+- close 前检查 task 完整性并核对实现记录覆盖实际 git 改动，优先使用脚本：`scripts/lint_task.py --closing <task-file>`；必要时传 `--repo <target-project-root>`，需要严格失败时再加 `--strict`。
 
 ## 操作入口
 
@@ -32,7 +32,7 @@ description: 面向中文用户。用于把代码开发、bug 修复、重构、
 - `new` / `新建`：为新的开发、修复、重构或工具生成工作启动需求澄清、方案选择和最终确认流程；确认前只允许创建或更新 task 草案，不允许推进实现。
 - `continue` / `继续`：读取现有 task，从上次阶段继续。
 - `restart` / `重启`：需求不变但上一阶段实现或方案不适用时，保留历史并重启当前 task。
-- `close` / `完成`：实现和验证结束后收尾，标记 task 为 `done`。
+- `close` / `完成`：实现和验证结束后收尾；验证和必要验收完成时标记 `done`，只剩人工、运行时或目标环境验收时标记 `awaiting_acceptance`（待验收）。
 - `block` / `阻塞`：缺少用户决策、权限、依赖或外部条件时，标记 task 为 `blocked`。
 
 示例：
@@ -57,6 +57,7 @@ description: 面向中文用户。用于把代码开发、bug 修复、重构、
 - 创建或继续 task 前，必须先检查目标项目是否在 git 工作树中，并读取 `git status --short`，识别用户已有改动。
 - `new` 不等于立即实现。必须先让用户描述需求，或把操作名后已有文字作为原始需求；然后总结理解、列出模糊点、需求边界和待确认问题，等待用户补充。
 - `new` 首轮创建或更新 task 草案后必须停在确认点。不得在同一个 assistant turn 内从新建 task 继续到实现；task 文件中的 `Final Plan`、`Plan`、`Decision Log` 或 agent 自己输出的执行摘要都不算用户确认。
+- 唯一 fast-path 例外：用户明确要求直接按已给出的 what+where 执行，且改动极小、无方案分支、低风险（例如 typo、一行文案、单行配置或局部重命名），可以在同一轮记录关键假设后实现；若发现歧义或风险升高，立即回到确认流程。
 - 需求澄清可以多轮进行。只要目标、成功标准、输入输出、范围边界、兼容性风险或验证方式仍不明确，就继续提问，不得为了推进而自行脑补进入实现。
 - 需求初步明确后，必须观察代码架构和相关上下文，再给出解决方案。方案必须基于代码事实，而不是只基于抽象需求推断。
 - 如果存在多个合理方案，必须列出各方案的差异、成本、风险、影响范围和验证方式，并让用户选择。
@@ -96,10 +97,11 @@ description: 面向中文用户。用于把代码开发、bug 修复、重构、
 ### 验证与收尾
 
 - 每个 task 收尾前必须记录验证：命令、结果、失败原因或未验证原因。
-- close 前优先运行 `scripts/lint_task.py --closing <task-file>`；若脚本不可用，按 `references/task-files.md` 手工检查必填字段、实现记录和验证记录。
+- close 前优先运行 `scripts/lint_task.py --closing <task-file>`，核对必填记录并用 git diff 对账 `Implementation Log` / `Activity Log` 是否覆盖实际改动；若脚本不可用，按 `references/task-files.md` 手工检查必填字段、实现记录、验证记录和实际 git 改动。
 - 低风险任务可运行聚焦验证；跨模块、共享契约或修复 bug 时，优先补充或运行回归测试。
 - 测试策略复杂、用户明确要求测试治理，或需要独立验证阶段时，交接给 `ledev-test`，但 task 内仍要记录交接和结果。
-- 只有实现、验证和收尾记录完整后，才把 task 标记为 `done`。
+- 只有实现、验证、必要验收和收尾记录完整后，才把 task 标记为 `done`。
+- 如果 agent 能执行的实现和验证均已完成，只剩人工、运行时或目标环境验收，状态设为 `awaiting_acceptance`，并在 `Handoff / Next` 记录具体验收动作；验收跑通后一行改为 `done`。
 - 如果验证被权限、依赖、网络、外部服务或环境阻塞，记录具体命令和阻塞原因，状态设为 `blocked` 或保留为 `in_progress` 并说明风险。
 
 ## 默认输出
