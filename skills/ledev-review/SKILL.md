@@ -20,7 +20,7 @@ description: 面向中文用户。用于对 Git 项目中已经 commit 的线性
 - 报告和状态记录规则：读 `references/report.md`。
 - 通用审查规则：读 `rules/common.md`。
 - 根据变更语言读取对应规则：
-  - Go：读 `rules/golang.md`。
+  - Go：读 `rules/go.md`。
   - Java：读 `rules/java.md`。
   - JavaScript / TypeScript：读 `rules/javascript.md`。
   - Python：读 `rules/python.md`。
