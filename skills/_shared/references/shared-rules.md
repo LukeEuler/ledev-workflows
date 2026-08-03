@@ -32,8 +32,13 @@
 
 - 运行进度统一写入 `.ai/ledev/state/<skill-name>.md`，不同 skill 不共用状态文件。
 - 临时草稿、备份和恢复数据写入 `.ai/ledev/drafts/`；长期事实、任务、审查和 QA 写入各自子目录。
-- 普通业务项目中，如 skill 会写入本地临时或运行产物，应确保对应路径被 `.gitignore` 覆盖；只追加缺失条目，不重排已有 `.gitignore`。
-- 如果项目已有更宽泛规则覆盖目标路径，例如 `.ai/` 或 `.ai/ledev/`，不重复追加。
+- 普通业务项目中，如 skill 会写入本地临时或运行产物，应确保对应目标路径被 Git 的有效 ignore 规则覆盖。检查必须在 `Primary repo` 根目录执行；`Related repos` 仍遵循只读边界。
+- 修改项目根 `.gitignore` 前，对每个目标路径运行 `git check-ignore -q --no-index -- <target-path>`。该检查以 Git 实际生效结果为准，会同时考虑项目内各级 `.gitignore`、`.git/info/exclude`、`core.excludesFile`（例如用户配置的 `~/.gitignore`）及反向规则；不要只读取或解析某一个 ignore 文件。需要诊断匹配来源时使用 `git check-ignore -v --no-index -- <target-path>`。
+- 文件目标直接检查文件路径；目录目标按该 skill 实际会写入的文件类型检查一个或多个无需创建的代表性子路径，例如 Markdown、JSON 和 HTML 草稿分别检查 `.ai/ledev/drafts/.ledev-ignore-probe.md`、`.ai/ledev/drafts/.ledev-ignore-probe.json` 和 `.ai/ledev/drafts/.ledev-ignore-probe.html`。所有实际产物类型都已被有效规则覆盖时才视为该目录已覆盖，避免扩展名规则造成误判。
+- 目标路径已被任何有效规则覆盖时，不修改项目 `.gitignore`；这包括用户全局 ignore 或 `.git/info/exclude` 已覆盖的情况。只有未覆盖的目标才向项目根 `.gitignore` 追加最窄的缺失条目，不重排已有内容，也不因为项目缺少同名规则而重复追加。
+- `git check-ignore --no-index` 只判断规则是否匹配，不会让已被 Git 跟踪的文件自动取消跟踪。目标已被跟踪时，不运行 `git rm --cached`；先记录现状并让用户决定是否继续纳入版本控制。
+- dry-run、no-write 和只读 operation 只报告有效 ignore 状态和建议，不修改 `.gitignore`。用户明确要求把目标产物纳入版本控制时，也不添加 ignore 规则，并记录该决策。
+- 如果某个 skill 要求工作树干净，而补充项目 `.gitignore` 会产生变更，追加后必须停止当前 operation，提示用户检查并提交该变更，再重新执行；不要在已经变脏的工作树上继续要求 clean-worktree 的流程。
 
 ## 路径可移植性
 

@@ -47,7 +47,8 @@ description: 面向中文用户。用于把代码开发、bug 修复、重构、
 
 ### 写入边界
 
-- `.ai/ledev/tasks/` 和 `.ai/ledev/state/ledev-task.md` 是目标项目的运行产物，只在被开发、修复或验证的目标项目中创建。
+- `.ai/ledev/tasks/` 是长期 task 记录，`.ai/ledev/state/ledev-task.md` 是运行进度；两者只在被开发、修复或验证的目标项目中创建。
+- 普通业务项目中，写入运行进度前按共享规则检查 `.ai/ledev/state/ledev-task.md` 是否已被 Git 的有效 ignore 规则覆盖；用户全局 ignore、`.git/info/exclude` 或项目规则已覆盖时不修改项目 `.gitignore`，只有未覆盖时才追加该路径。长期 task 记录默认不因本规则被 ignore；用户明确要求 task 记录保持本地时，再按同一检查流程处理代表性路径 `.ai/ledev/tasks/T000-ignore-probe.md`。
 - 当目标项目就是 `ledev-workflows` 这类 workflow/skill 仓库本身，或用户明确不希望落盘时，不创建目标项目 `.ai/ledev/`。用对话说明当前 task 语义、改动范围、验证结果，并依赖 git diff 保留变更证据。
 - 如果不确定当前仓库是业务目标项目还是 workflow/skill 仓库，先根据目录结构和用户诉求判断；仍不确定时向用户确认再写 `.ai/ledev/`。
 

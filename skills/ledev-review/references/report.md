@@ -16,7 +16,14 @@
 
 ## Git Ignore
 
-普通项目中，执行 review 前按共享规则确保本地 review 产物不会进入业务代码 git。本 skill 需要覆盖的具体条目是：
+普通项目中，执行 review 前按共享规则检查下列目标路径是否已被 Git 的有效 ignore 规则覆盖：
+
+```text
+.ai/ledev/reviews/R00000000-0000-ignore-probe.md
+.ai/ledev/state/ledev-review.md
+```
+
+用户全局 ignore、`.git/info/exclude` 或项目规则已经覆盖时，不修改项目 `.gitignore`。只有未覆盖时，才向项目根 `.gitignore` 追加对应条目：
 
 ```gitignore
 .ai/ledev/reviews/
@@ -24,6 +31,8 @@
 ```
 
 当前仓库是 workflow、skill、prompt、agent 配置或类似开发流程仓库，且本次不落盘 review 报告时，跳过 `.gitignore` 修改。如果用户明确要求把 review 报告纳入版本控制，不执行本规则，并在报告中记录该用户决策。
+
+review 要求工作树干净。如果有效 ignore 检查发现必须修改项目 `.gitignore`，追加后立即停止本次 review，提示用户检查并提交 `.gitignore`，然后重新执行 review；不要继续审查已经变脏的工作树。
 
 ## 报告内容
 

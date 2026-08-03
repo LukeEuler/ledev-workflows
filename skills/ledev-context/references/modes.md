@@ -6,7 +6,7 @@
 
 模式名大小写不敏感。对用户展示命令时，优先使用小写模式名。
 
-除 `default` 外，每次运行先按共享规则做 git 工作树检查；多仓库上下文中，目标路径指 `Primary repo`，`Related repos` 只做只读检查。`ledev-context` 运行时需要确保 `.ai/ledev/drafts/` 被 `.gitignore` 或更宽泛规则覆盖；dry-run/no-write 时只报告建议，不修改 `.gitignore`。
+除 `default` 外，每次运行先按共享规则做 git 工作树检查；多仓库上下文中，目标路径指 `Primary repo`，`Related repos` 只做只读检查。会写入运行产物时，按共享规则检查 `.ai/ledev/drafts/.ledev-ignore-probe.md`、`.ai/ledev/drafts/.ledev-ignore-probe.json`、`.ai/ledev/drafts/.ledev-ignore-probe.html` 和 `.ai/ledev/state/ledev-context.md` 是否已被 Git 的有效 ignore 规则覆盖；已被用户全局 ignore、`.git/info/exclude` 或项目规则覆盖时，不修改项目 `.gitignore`。只有任一草稿类型未覆盖时才追加 `.ai/ledev/drafts/`，只有状态文件未覆盖时才追加 `.ai/ledev/state/ledev-context.md`。`default`、`status`、dry-run 和 no-write 只报告建议，不修改 `.gitignore`。
 
 可重复执行：
 

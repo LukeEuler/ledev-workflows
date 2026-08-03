@@ -59,7 +59,7 @@ description: 面向中文用户。用于对 Git 项目中已经 commit 的线性
    - 失败时停止 review，给出最小修复命令提示。
 
 2. 建立上下文和意图。
-   - 普通项目中，先按 `references/report.md` 确保 `.ai/ledev/reviews/` 和 `.ai/ledev/state/ledev-review.md` 已加入 `.gitignore`；当前仓库是 workflow/skill 仓库或不落盘场景时跳过。
+   - 普通项目中，先按 `references/report.md` 检查代表性 review 报告和 `.ai/ledev/state/ledev-review.md` 是否已被 Git 的有效 ignore 规则覆盖；用户全局 ignore 或其他有效规则已覆盖时不修改项目 `.gitignore`。如必须追加项目规则，追加后停止并要求用户提交 `.gitignore`，重新执行 review；当前仓库是 workflow/skill 仓库或不落盘场景时跳过。
    - 读取 `.ai/ledev/project-context.md`、`.ai/ledev/scope/scan-scope.md`、`.ai/ledev/facts/`、`.ai/ledev/state/ledev-*.md` 和相关 task 文件，存在则优先使用。
    - 从用户说明、commit message、task、issue/PR 描述、测试变更和代码差异提取用户意图。
    - 如果无法判断变更目的，或目的与 diff 明显不一致，先向用户提问；不要臆测业务正确性。
