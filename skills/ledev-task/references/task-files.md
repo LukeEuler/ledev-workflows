@@ -195,7 +195,14 @@ python3 <ledev-task-skill-dir>/scripts/lint_task.py --closing <task-file>
 - `$ledev-context scope`：新增/删除顶层目录、模块边界、扫描排除项、关联仓库、workspace/replace/vendor 关系或其他会改变扫描范围的内容。
 - `$ledev-context document`：事实层已经由本次或外部流程更新，但 Markdown/HTML 仍需重新生成。
 
-如果不确定改动是否影响 context，写 `Context-impacting changes: unknown`，推荐 `$ledev-context status` 或 `$ledev-context refresh`，并在 `Reason` 中说明不确定来源。
+先判断上下文链路状态，再套用上述改动类型规则：
+
+- `Context before task: missing` 表示没有任何 context 产物。此时影响为 `yes` 或 `unknown` 就推荐 `$ledev-context scope`，影响为 `no` 就写 `not-required`；禁止推荐 `status`、`refresh` 或 `document`。
+- 已存在部分或完整 context 产物但状态不明时写 `unknown`，推荐 `$ledev-context status`。
+- scope 缺失、未确认或 stale 时优先推荐 `$ledev-context scope`；只有已确认 scope 才能推荐 `$ledev-context refresh`。
+- facts 已更新、仅正式文档待重建时推荐 `$ledev-context document`。
+
+如果不确定改动是否影响 context，写 `Context-impacting changes: unknown` 并在 `Reason` 中说明不确定来源；推荐命令仍必须遵守当前上下文阶段的前置条件。
 
 ## 索引规则
 

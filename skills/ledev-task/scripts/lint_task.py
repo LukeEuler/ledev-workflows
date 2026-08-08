@@ -11,6 +11,9 @@ from pathlib import Path
 
 
 FIELD_RE = re.compile(r"^- ([A-Za-z][A-Za-z ]*):\s*(.*)$")
+CONTEXT_FIELD_RE = re.compile(
+    r"^- (Context before task|Context-impacting changes|Reason|Recommended command):\s*(.*)$"
+)
 TEMPLATE_MARKER_RE = re.compile(r"^<!--\s*ledev-task-template:\s*(full|light)\s*-->\s*$")
 TASK_FILENAME_RE = re.compile(r"^(T\d{3})-[a-z0-9]+(?:-[a-z0-9]+)*\.md$")
 TASK_HEADING_RE = re.compile(r"^#\s+(T\d{3})\s+(.+?)\s+/\s+([A-Za-z][A-Za-z0-9 .:_/()'&+-]*?)\s*$")
@@ -20,6 +23,8 @@ PLACEHOLDER_RE = re.compile(
 CONTEXT_REFRESH_COMMAND_RE = re.compile(
     r"Recommended command:\s*(not-required|\$ledev-context\s+(?:status|refresh|scope|document))\b",
 )
+CONTEXT_BEFORE_VALUES = {"current", "stale", "missing", "unknown", "not-checked"}
+CONTEXT_IMPACT_VALUES = {"yes", "no", "unknown"}
 BACKTICK_RE = re.compile(r"`([^`\n]+)`")
 PATH_TOKEN_RE = re.compile(
     r"(?<![\w./-])([A-Za-z0-9_.@+-]+(?:/[A-Za-z0-9_.@()+-]+)+)(?=$|[\s,;:)。；，])"
@@ -149,6 +154,41 @@ def context_refresh_meaningful(value: str) -> bool:
     if not close_meaningful(value):
         return False
     return bool(CONTEXT_REFRESH_COMMAND_RE.search(value))
+
+
+def section_fields(value: str) -> dict[str, str]:
+    result: dict[str, str] = {}
+    for line in value.splitlines():
+        match = CONTEXT_FIELD_RE.match(line.strip())
+        if match:
+            result[match.group(1)] = match.group(2).strip()
+    return result
+
+
+def context_refresh_problems(value: str) -> list[str]:
+    refresh_fields = section_fields(value)
+    before = refresh_fields.get("Context before task", "")
+    impact = refresh_fields.get("Context-impacting changes", "")
+    command_match = CONTEXT_REFRESH_COMMAND_RE.search(value)
+    command = command_match.group(1) if command_match else ""
+    problems: list[str] = []
+
+    if before not in CONTEXT_BEFORE_VALUES:
+        problems.append("Context before task must use a supported value")
+    elif before == "not-checked":
+        problems.append("Context before task must be resolved before close")
+
+    if impact not in CONTEXT_IMPACT_VALUES:
+        problems.append("Context-impacting changes must be yes, no, or unknown")
+
+    if before == "missing":
+        expected = "not-required" if impact == "no" else "$ledev-context scope"
+        if command and command != expected:
+            problems.append(
+                "Context before task is missing; recommended command must be " + expected
+            )
+
+    return problems
 
 
 def infer_repo_root(task_path: Path) -> Path:
@@ -312,6 +352,8 @@ def main() -> int:
         context_refresh = section_map.get("Context Refresh", "")
         if not context_refresh_meaningful(context_refresh):
             problems.append("Context Refresh must include a concrete recommended command for close")
+        else:
+            problems.extend(context_refresh_problems(context_refresh))
 
         repo_root = Path(args.repo).resolve() if args.repo else infer_repo_root(task_path)
         warnings, changed_unmentioned = diff_reconciliation_warnings(repo_root, activity)

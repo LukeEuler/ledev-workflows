@@ -6,7 +6,7 @@
 2. 检查 git 状态，识别用户已有改动。
 3. 对 `new` 先完成需求澄清；对其他操作读取已有 task 的阶段和上下文。
 4. 读取已有 `.ai/ledev/project-context.md`、`.ai/ledev/facts/`、`.ai/ledev/qa/` 和相关 task；如果存在多仓库上下文，读取 `.ai/ledev/scope/scan-scope.md` 和 `.ai/ledev/facts/related-repos.md`。
-5. 如果存在 `ledev-context` 产物，优先执行或建议 `$ledev-context status`，记录上下文是否 current、stale、missing 或 unknown。
+5. 识别 `ledev-context` 链路是否已经初始化；存在产物时优先执行或建议 `$ledev-context status`，完全不存在时记录 `missing`，不要把未初始化状态当作 stale 或直接推荐 `refresh`。
 6. 观察目标代码架构和相关实现。
 7. 创建或更新 task，记录上下文、需求、范围、影响面、方案选项、阶段和 `Context Refresh` 初始判断。
 8. 给出方案选项，必要时让用户选择；用户选择后给出最终执行摘要并等待确认。
@@ -123,7 +123,7 @@ python3 <ledev-task-skill-dir>/scripts/generate_task_index.py --next-id <target-
 
 - 如果目标项目存在 `.ai/ledev/project-context.md`、`.ai/ledev/facts/manifest.md` 或 `.ai/ledev/state/ledev-context.md`，优先执行或建议 `$ledev-context status`。
 - 如果 status 显示 `current`，记录 `Context before task: current`。
-- 如果 status 显示 stale、缺少快照或无法执行，记录 `stale`、`missing` 或 `unknown`，并把风险写入 `Context Notes`。
+- 如果 status 显示 stale，记录 `stale`；已有 context 产物但缺少快照或无法执行时记录 `unknown`，并把风险写入 `Context Notes`。
 - 如果目标项目没有任何 context 产物，记录 `Context before task: missing`。
 
 实现或验证后，根据实际改动选择推荐命令：
@@ -134,7 +134,15 @@ python3 <ledev-task-skill-dir>/scripts/generate_task_index.py --next-id <target-
 - `$ledev-context scope`：新增/删除顶层目录、模块边界、扫描排除项、关联仓库、workspace/replace/vendor 关系或 scan depth 相关内容。
 - `$ledev-context document`：事实层已更新，但正式 Markdown/HTML 仍需重建。
 
-如果多条规则同时匹配，选择最保守的命令，优先级为：`$ledev-context scope` > `$ledev-context refresh` > `$ledev-context document` > `$ledev-context status` > `not-required`。
+必须先按上下文链路状态判断命令是否可执行，再按改动类型选择命令：
+
+- `Context before task: missing` 表示项目没有任何 context 产物。若 `Context-impacting changes: yes | unknown`，推荐 `$ledev-context scope`，用于从正式第一阶段建立上下文；若为 `no`，推荐 `not-required`。此状态不得推荐 `$ledev-context status`、`$ledev-context refresh` 或 `$ledev-context document`。
+- 已有 context 产物，但完整性或新旧状态无法判断时，推荐 `$ledev-context status`；不要把这种情况记录为 `missing`。
+- scope 缺失、未确认或 stale 时，推荐 `$ledev-context scope`；确认后才能执行 `$ledev-context refresh`。
+- scope 已确认且 facts 会被实际改动影响时，推荐 `$ledev-context refresh`。
+- facts 已更新而正式 Markdown/HTML 仍旧时，推荐 `$ledev-context document`。
+
+在命令前置条件均满足且多条改动规则同时匹配时，选择最保守的命令，优先级为：`$ledev-context scope` > `$ledev-context refresh` > `$ledev-context document` > `$ledev-context status` > `not-required`。上下文阶段判断优先于这条改动类型优先级。
 
 ## block / 阻塞
 

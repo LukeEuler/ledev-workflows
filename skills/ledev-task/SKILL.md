@@ -64,7 +64,7 @@ description: 面向中文用户。用于把代码开发、bug 修复、重构、
 - 如果存在多个合理方案，必须列出各方案的差异、成本、风险、影响范围和验证方式，并让用户选择。
 - 用户选择方案后，必须给出最终执行摘要，包括确认需求、明确不做范围、采用方案、预计修改位置、验证计划和剩余风险；收到后续用户消息中的明确确认（例如 `confirm`、`按这个执行`、`继续实现`）后，才允许进入实现。用户最初的需求描述、泛泛的“帮我做/实现/修复”或 agent 自己写入 task 的内容不得当作最终确认。
 - 实现前必须观察代码架构和相关上下文。至少确认项目结构、技术栈、相关模块、相似实现、命令入口、测试方式和风险边界。
-- 如果目标项目存在 `.ai/ledev/project-context.md`、`.ai/ledev/facts/` 或 `.ai/ledev/state/ledev-context.md`，必须优先读取。缺失、明显过期或任务影响面较大时，先运行或建议运行 `ledev-context`。
+- 如果目标项目存在 `.ai/ledev/project-context.md`、`.ai/ledev/facts/` 或 `.ai/ledev/state/ledev-context.md`，必须优先读取。缺失、明显过期或任务影响面较大时，先按上下文链路当前阶段选择并运行或建议运行 `ledev-context`；没有任何 context 产物时不得直接推荐 `refresh`。
 - 如果目标项目存在 `ledev-context` 产物，开始实现前优先建议或运行 `$ledev-context status` 检查上下文是否 stale；若 status 不可用，按 `.ai/ledev/state/ledev-context.md` 和 `.ai/ledev/facts/manifest.md` 保守判断。
 - 如果 `ledev-context` 事实层声明了 `Primary repo` 和 `Related repos`，必须继承多仓库上下文：读取 `.ai/ledev/scope/scan-scope.md`、`.ai/ledev/facts/related-repos.md`、`.ai/ledev/facts/dependencies.md`、`.ai/ledev/facts/boundaries.md` 和相关事实文件。
 - task 写入边界默认只在 `Primary repo`。`Related repos` 默认只读参考；除非用户明确要求跨仓改动，否则不得修改关联仓库。
@@ -92,7 +92,7 @@ description: 面向中文用户。用于把代码开发、bug 修复、重构、
 - bug 修复必须先记录复现方式、现象、初始假设和根因解释；无法复现时记录已尝试的证据和当前判断。
 - 实现必须匹配仓库既有模式，优先复用现有 helper、命名、错误处理、配置和测试风格。
 - 改动保持窄范围。不要顺手重构无关代码，不要覆盖用户已有改动。
-- 任何会改变代码结构、入口、配置、依赖、命令、测试、公共 API、数据模型、目录边界或跨仓关系的实现，都必须在 task 的 `Context Refresh` 和最终回复中给出 `ledev-context` 刷新建议。
+- 任何会改变代码结构、入口、配置、依赖、命令、测试、公共 API、数据模型、目录边界或跨仓关系的实现，都必须在 task 的 `Context Refresh` 和最终回复中给出与上下文当前阶段匹配的 `ledev-context` 后续建议；上下文尚未初始化时推荐 `$ledev-context scope`，不得称为 refresh 或推荐 `$ledev-context refresh`。
 - 手动编辑文件优先使用 `apply_patch`。
 
 ### 验证与收尾
