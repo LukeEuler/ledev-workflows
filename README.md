@@ -41,36 +41,26 @@ skills/ledev-context/rules/<language>.md
 
 ### 安装
 
-当前提供 Codex 和 Claude Code 适配。通过软链接把 `skills/` 下的 skill 目录链接到对应工具的个人 skills 目录。
-
-Codex：
+当前提供 Codex 和 Claude Code 适配。通过同一个脚本把 `skills/` 复制同步到已存在的个人 skills 目录。
 
 ```sh
-./scripts/install-symlinks.sh
+./scripts/install-skills.sh
 ```
 
-Codex 脚本默认行为：
+脚本会自动识别并同步：
 
-- 如果设置了 `CODEX_HOME`，链接到 `$CODEX_HOME/skills`
-- 否则链接到 `~/.codex/skills`
-- 会清理旧名字的软链接：`project-context-builder`、`dev-implementation`、`dev-context`、`dev-fix`、`dev-impl`、`ledev-fix`、`ledev-impl`、`dev-review`、`dev-test`、`dev-tool`、`test-validation`、`code-review`、`bugfix-sop`、`tool-generator`
-- 如果目标位置已经存在普通目录或文件，脚本会拒绝覆盖
-- 如果目标位置已经是软链接，脚本会重新创建链接
+- Codex：优先使用 `$LEDEV_CODEX_HOME`、`$CODEX_HOME`，否则使用 `~/.codex`
+- Claude Code：优先使用 `$LEDEV_CLAUDE_CODE_HOME`、`$CLAUDE_CODE_HOME`，否则使用 `~/.claude`
+- 只有对应根目录已经存在时才会同步；缺少 Codex 或 Claude Code 的目录时会跳过，不会创建该工具的根目录
+- 只复制包含 `SKILL.md` 的 skill 目录，并同时复制内部依赖 `_shared`；`_shared` 不会作为可调用 skill 暴露
+- 已由本项目安装的 skill 和旧版软链接会更新；同名但并非由本项目管理的普通目录会跳过，避免覆盖用户内容
 
-Claude Code：
+升级本项目后，再运行同一条命令即可更新已安装的 Codex 和 Claude Code skills：
 
 ```sh
-./scripts/install-claude-code-symlinks.sh
+git pull
+./scripts/install-skills.sh
 ```
-
-Claude Code 脚本默认行为：
-
-- 如果设置了 `CLAUDE_CODE_HOME`，链接到 `$CLAUDE_CODE_HOME/skills`
-- 否则链接到 `~/.claude/skills`
-- 只链接包含 `SKILL.md` 的 skill 目录，不链接 `_shared` 这类内部引用目录
-- 会清理同一批旧名字的软链接
-- 如果目标位置已经存在普通目录或文件，脚本会拒绝覆盖
-- 如果目标位置已经是软链接，脚本会重新创建链接
 
 Claude Code 使用目录名作为 slash command，例如安装后可用 `/ledev-context scope` 或 `/ledev-task new ...`。这些 skill 仍使用同一份 `SKILL.md`；通常不需要为 Claude Code 复制一份 skill 文件，只需要在说明中同时兼容 Codex 的 `$ledev-*` 和 Claude Code 的 `/ledev-*` 调用方式。
 
@@ -141,36 +131,26 @@ Future rules can be added for:
 
 ### Install
 
-The current adapters support Codex and Claude Code. Symlink the skill directories into the matching personal skills directory.
-
-Codex:
+The adapters support Codex and Claude Code. One script copies and syncs skills to the personal skills directories that already exist.
 
 ```sh
-./scripts/install-symlinks.sh
+./scripts/install-skills.sh
 ```
 
-Codex script behavior:
+The script automatically detects and syncs:
 
-- Uses `$CODEX_HOME/skills` when `CODEX_HOME` is set
-- Otherwise uses `~/.codex/skills`
-- Removes legacy symlinks: `project-context-builder`, `dev-implementation`, `dev-context`, `dev-fix`, `dev-impl`, `ledev-fix`, `ledev-impl`, `dev-review`, `dev-test`, `dev-tool`, `test-validation`, `code-review`, `bugfix-sop`, `tool-generator`
-- Refuses to overwrite existing non-symlink files or directories
-- Recreates existing symlinks
+- Codex: `$LEDEV_CODEX_HOME`, then `$CODEX_HOME`, otherwise `~/.codex`
+- Claude Code: `$LEDEV_CLAUDE_CODE_HOME`, then `$CLAUDE_CODE_HOME`, otherwise `~/.claude`
+- It syncs only when that tool's root directory already exists. A missing Codex or Claude Code root is skipped; it is not created.
+- It copies skill directories containing `SKILL.md` plus the internal `_shared` dependency. `_shared` is not exposed as a callable skill.
+- Skills previously installed by this project and legacy symlinks are updated. Unmanaged ordinary directories with the same name are skipped to avoid overwriting user content.
 
-Claude Code:
+After upgrading this project, run the same command to update installed Codex and Claude Code skills:
 
 ```sh
-./scripts/install-claude-code-symlinks.sh
+git pull
+./scripts/install-skills.sh
 ```
-
-Claude Code script behavior:
-
-- Uses `$CLAUDE_CODE_HOME/skills` when `CLAUDE_CODE_HOME` is set
-- Otherwise uses `~/.claude/skills`
-- Links only skill directories that contain `SKILL.md`, so internal reference directories such as `_shared` are not exposed as skills
-- Removes the same legacy symlink names
-- Refuses to overwrite existing non-symlink files or directories
-- Recreates existing symlinks
 
 Claude Code uses the directory name as the slash command, for example `/ledev-context scope` or `/ledev-task new ...`. The same `SKILL.md` files are used for both adapters; a separate Claude Code copy is usually unnecessary.
 
