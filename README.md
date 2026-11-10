@@ -38,6 +38,7 @@ skills/ledev-context/rules/<language>.md
 - `ledev-context`：采集、校验、纠正并沉淀项目上下文，同时可生成 AI 工作上下文和人类项目文档。
 - `ledev-task`：用带类型的 `T###` 编号 task 统一管理开发、实现、bug 修复、重构和验证收尾。
 - `ledev-review`：以代码审查视角检查 diff，优先关注正确性、回归风险、错误处理、并发、数据一致性和测试缺口。
+- `ledev-commit`：用 `$ledev-commit`（Codex）或 `/ledev-commit`（Claude Code）根据暂存区生成一行「中文摘要 / English summary」。
 
 ### 安装
 
@@ -128,6 +129,7 @@ Future rules can be added for:
 - `ledev-context`: Collects, validates, corrects, and documents project context. Produces AI working context and optional human-readable project docs.
 - `ledev-task`: Tracks implementation, bug fixes, refactors, and validation closure through typed numbered `T###` tasks.
 - `ledev-review`: Reviews diffs with a focus on correctness, regressions, error handling, concurrency, data consistency, and missing tests.
+- `ledev-commit`: Run `$ledev-commit` (Codex) or `/ledev-commit` (Claude Code) to draft a one-line Chinese / English commit subject from staged changes.
 
 ### Install
 

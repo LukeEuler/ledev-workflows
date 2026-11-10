@@ -1,0 +1,3 @@
+interface:
+  display_name: "ledev-commit"
+  short_description: "Draft a bilingual subject from staged changes"
