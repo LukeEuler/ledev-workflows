@@ -142,13 +142,9 @@ def close_meaningful(value: str) -> bool:
 
 def infer_repo_root(task_path: Path) -> Path:
     resolved = task_path.resolve()
-    parent = resolved.parent
-    if (
-        parent.name == "tasks"
-        and parent.parent.name == "ledev"
-        and parent.parent.parent.name == ".ai"
-    ):
-        return parent.parent.parent.parent
+    for parent in resolved.parents:
+        if parent.name == "tasks" and parent.parent.name == "ledev" and parent.parent.parent.name == ".ai":
+            return parent.parent.parent.parent
     return Path.cwd()
 
 
@@ -253,7 +249,8 @@ def main() -> int:
     if not filename_match:
         problems.append("task filename must be T###-english-hyphen-title.md")
 
-    if not text.startswith("[返回任务索引](./index.md)"):
+    expected_index = "../index.md" if task_path.parent.parent.name == "archive" else "./index.md"
+    if not text.startswith(f"[返回任务索引]({expected_index})"):
         problems.append("missing first-line index link")
 
     kind = template_kind(text)

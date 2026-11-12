@@ -1,6 +1,6 @@
 ---
 name: ledev-task
-description: 面向中文用户。用于把代码开发、bug 修复、重构、小型工具生成和实现相关文档变更统一纳入编号 task 工作流。Use when an AI coding agent needs to create, continue, restart, implement, fix, or close typed development tasks before modifying project code, configs, tests, scripts, docs tied to implementation, or diagnosing bugs that may require code changes. 产物包括 .ai/ledev/tasks/ 下的 T### task 文件、.ai/ledev/tasks/index.md 状态索引和 .ai/ledev/state/ledev-task.md 运行状态；验证阶段可读取或交接给 ledev-test，但不替代独立测试治理。
+description: 面向中文用户。用于把代码开发、bug 修复、重构、小型工具生成和实现相关文档变更统一纳入编号 task 工作流。Use when an AI coding agent needs to create, continue, restart, implement, fix, close, archive, or restore typed development tasks before modifying project code, configs, tests, scripts, docs tied to implementation, or diagnosing bugs that may require code changes. 产物包括 .ai/ledev/tasks/ 下的 T### task 文件、.ai/ledev/tasks/index.md 状态索引和 .ai/ledev/state/ledev-task.md 运行状态；验证阶段可读取或交接给 ledev-test，但不替代独立测试治理。
 ---
 
 # LEDev Task
@@ -15,6 +15,7 @@ description: 面向中文用户。用于把代码开发、bug 修复、重构、
 
 - 跨 LEDev skill 的中文优先、git、`.ai/ledev/`、路径可移植性和多仓库默认边界：读 `../_shared/references/shared-rules.md`。
 - task 字段、编号、索引和状态文件规则：读 `references/task-files.md`。
+- archive、restore、附件/引用预检、事务提交和 state 收敛：读 `references/lifecycle.md`。
 - 默认入口、新建、继续、重启、收尾等操作细节：读 `references/workflow.md`。
 - 写文件时使用模板：
   - `templates/task-template.md`
@@ -33,6 +34,8 @@ description: 面向中文用户。用于把代码开发、bug 修复、重构、
 - `continue` / `继续`：读取现有 task，从上次阶段继续。
 - `restart` / `重启`：需求不变但上一阶段实现或方案不适用时，保留历史并重启当前 task。
 - `close` / `完成`：实现和验证结束后收尾；验证和必要验收完成时标记 `done`，只剩人工、运行时或目标环境验收时标记 `awaiting_acceptance`（待验收）。
+- `archive` / `归档`：不带编号只读评估；带编号则检查资格并整批无损归档已结束任务，状态不变。
+- `restore` / `恢复`：按编号恢复活动位置，保留状态及历史。
 - `block` / `阻塞`：缺少用户决策、权限、依赖或外部条件时，标记 task 为 `blocked`。
 
 示例：
@@ -42,6 +45,9 @@ description: 面向中文用户。用于把代码开发、bug 修复、重构、
 - `ledev-task continue T003`
 - `ledev-task restart T003`
 - `ledev-task close T003`
+- `ledev-task archive`
+- `ledev-task archive T010 T011`
+- `ledev-task restore T010`
 
 ## 硬性规则
 
@@ -74,16 +80,17 @@ description: 面向中文用户。用于把代码开发、bug 修复、重构、
 ### task 记录
 
 - task 编号使用 `T###`，从 `T001` 开始递增；创建新 task 前必须先分配下一个编号，禁止凭空假定 `T001`。
-- 新 task 编号必须取所有可见历史编号的最大值加一，历史来源至少包括 `.ai/ledev/tasks/` 文件名和内容、`.ai/ledev/tasks/index.md`、`.ai/ledev/state/ledev-task.md`，以及 git 历史中曾出现过的 `.ai/ledev/tasks/T###-*` 路径；迁移后还必须扫描旧版 `.ai/tasks/`、`.ai/state/ledev-task.md` 和 git 历史中的 `.ai/tasks/T###-*`，但新 task 只写入 `.ai/ledev/tasks/`；不复用已删除、废弃、`obsolete`、重启过或当前不存在但有记录的编号。
+- 新 task 编号必须取所有可见历史编号的最大值加一，历史来源至少包括 `.ai/ledev/tasks/` 文件名和内容、`.ai/ledev/tasks/index.md`、`.ai/ledev/state/ledev-task.md`，以及 git 历史中曾出现过的 `.ai/ledev/tasks/` 下活动和归档任务路径；迁移后还必须扫描旧版 `.ai/tasks/`、`.ai/state/ledev-task.md` 和 git 历史中的 `.ai/tasks/T###-*`，但新 task 只写入 `.ai/ledev/tasks/`；不复用已删除、废弃、`obsolete`、重启过或当前不存在但有记录的编号。
 - 允许写入目标项目 `.ai/ledev/` 时，优先用只读命令 `python3 <skill>/scripts/generate_task_index.py --next-id <target-project-root>` 获取新编号；命令不可用时，按上述历史来源手工扫描后再取最大值加一。
 - 允许写入目标项目 `.ai/ledev/` 时，task 文件写入 `.ai/ledev/tasks/T###-english-short-title.md`；文件名短标题必须使用英文小写 hyphen-case，禁止使用中文、空格或过长描述；索引写入 `.ai/ledev/tasks/index.md`；运行状态写入 `.ai/ledev/state/ledev-task.md`。
-- 每个 task 文件第一行必须写入返回索引链接：`[返回任务索引](./index.md)`，指向同目录下的 `.ai/ledev/tasks/index.md`。
+- 每个 task 文件第一行必须写入返回索引链接：`[返回任务索引](./index.md)`，指向活动索引；归档正文改为 `[返回任务索引](../index.md)`，指向归档索引。
 - task 文件主标题必须明确写成 `# T### 中文任务标题 / English Task Title`；中文标题在前、英文标题在后，用 ` / ` 分隔。task 内容说明以中文为主。
 - 每个 task 必须记录类型、当前阶段、用户原始诉求、需求理解、需求确认、开放问题、范围、影响面、方案选项、方案决策、最终确认、实现记录、验证结果、剩余风险和历史事件。
 - 低风险 `chore`、`docs`、`tooling`、`config` task 可以使用 `templates/task-light-template.md`，但仍必须记录用户诉求、需求理解、范围、方案、实现活动、验证结果和后续事项。
 - 每个 task 必须有 `Type`。优先使用 `feature`（开发）或 `bugfix`（修复 bug）；其他常见类型见 `references/task-files.md`。
 - `restart` 不应删除历史。追加重启事件，说明为什么上一阶段不适用、保留哪些产物、废弃哪些假设。
-- `.ai/ledev/tasks/index.md` 是状态汇总，不替代单个 task 详情。更新 task 状态后同步更新索引；索引优先由 `python3 <skill>/scripts/generate_task_index.py <target-project-root>` 生成，确保 Tasks 表格里只有 task id 链接到对应 task 文件，Title 列保留纯文本。
+- 读取任务先按共享定位规则同时搜索活动和归档目录；归档不是新状态。写任务生命周期或索引前检查未完成事务；发现恢复日志先按 lifecycle.md 恢复。
+- `.ai/ledev/tasks/index.md` 是状态汇总，不替代单个 task 详情。更新 task 状态后同步更新索引；索引优先由 `python3 <skill>/scripts/generate_task_index.py <target-project-root>` 生成，确保各分组表格里只有 task id 链接到对应 task 文件，Title 列保留纯文本。
 
 ### 实现与修复
 
@@ -99,7 +106,7 @@ description: 面向中文用户。用于把代码开发、bug 修复、重构、
 - close 前优先运行 `scripts/lint_task.py --closing <task-file>`，核对必填记录并用 git diff 对账 `Implementation Log` / `Activity Log` 是否覆盖实际改动；若脚本不可用，按 `references/task-files.md` 手工检查必填字段、实现记录、验证记录和实际 git 改动。
 - 低风险任务可运行聚焦验证；跨模块、共享契约或修复 bug 时，优先补充或运行回归测试。
 - 测试策略复杂、用户明确要求测试治理，或需要独立验证阶段时，交接给 `ledev-test`，但 task 内仍要记录交接和结果。
-- 只有实现、验证、必要验收和收尾记录完整后，才把 task 标记为 `done`。
+- 只有实现、验证、必要验收和收尾记录完整后，才把 task 标记为 `done`；进入 `done` / `obsolete` 时记录实际 `Completed` 时间，旧记录不猜测补齐。
 - 如果 agent 能执行的实现和验证均已完成，只剩人工、运行时或目标环境验收，状态设为 `awaiting_acceptance`，并在 `Handoff / Next` 记录具体验收动作；验收跑通后一行改为 `done`。
 - 如果验证被权限、依赖、网络、外部服务或环境阻塞，记录具体命令和阻塞原因，状态设为 `blocked` 或保留为 `in_progress` 并说明风险。
 

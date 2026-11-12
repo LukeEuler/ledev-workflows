@@ -10,6 +10,10 @@
     index.md
     T001-short-title.md
     T002-short-title.md
+    archive/
+      index.md
+      2026/
+        T003-ended-task.md
   state/
     ledev-task.md
 ```
@@ -44,7 +48,7 @@ python3 <ledev-task-skill-dir>/scripts/generate_task_index.py --next-id <target-
 
 - 如果脚本不可用，必须按上述历史来源手工扫描并取最大值加一；手工扫描结果要写入 task 的 `Decision Log` 或本次对话记录。
 - 文件名使用 `T###-english-short-title.md`。短标题必须是英文小写 hyphen-case，例如 `export-csv`、`fix-login-timeout`；禁止使用中文、空格、下划线或过长描述。
-- 每个 task 文件第一行必须提供返回索引的相对链接：`[返回任务索引](./index.md)`，方便从 task 详情跳回 `.ai/ledev/tasks/index.md`。
+- 每个 task 文件第一行必须提供返回索引的相对链接：`[返回任务索引](./index.md)`，方便从活动 task 跳回主索引；归档正文使用 `[返回任务索引](../index.md)`，指向 `tasks/archive/index.md`。
 - 每个 task 文件第二行必须提供模板 marker：完整模板写 `<!-- ledev-task-template: full -->`，轻量模板写 `<!-- ledev-task-template: light -->`。
 - task 文件主标题必须使用中文 / 英文双语格式：`# T### 中文任务标题 / English Task Title`。中文标题在前，英文标题在后，中间固定使用 ` / ` 分隔，例如 `# T001 更新任务索引链接 / Update Task Index Links`。
 - task 文件中的说明性内容以中文为主；字段名、状态值、阶段值、类型值、命令、路径、代码符号、测试名称和短确认 token 可以保留英文。
@@ -125,7 +129,7 @@ task 类型使用稳定英文值，中文说明可以写在旁边。`Type` 是�
 
 使用完整模板时，task 文件必须包含：
 
-- 第一行返回索引链接：`[返回任务索引](./index.md)`。
+- 第一行返回索引链接：活动正文 `[返回任务索引](./index.md)`；归档正文 `[返回任务索引](../index.md)`。
 - 第二行模板 marker：`<!-- ledev-task-template: full -->`。
 - `Task`：编号和标题。
 - `Type`：task 主类型。
@@ -150,7 +154,7 @@ task 类型使用稳定英文值，中文说明可以写在旁边。`Type` 是�
 
 使用轻量模板时，task 文件必须包含：
 
-- 第一行返回索引链接：`[返回任务索引](./index.md)`。
+- 第一行返回索引链接：活动正文 `[返回任务索引](./index.md)`；归档正文 `[返回任务索引](../index.md)`。
 - 第二行模板 marker：`<!-- ledev-task-template: light -->`。
 - `Task`：编号和标题。
 - `Type`、`Status`、`Phase`、`Created`、`Updated`。
@@ -174,27 +178,18 @@ python3 <ledev-task-skill-dir>/scripts/lint_task.py --closing <task-file>
 
 ## 索引规则
 
-`.ai/ledev/tasks/index.md` 汇总：
-
-- task 总数。
-- 各状态数量。
-- task 列表：编号、类型、标题、状态。
-- `## Tasks` 表格中，`Task` 列的 task id 必须链接到对应 task 文件，例如 `[T001](./T001-export-csv.md)`。
-- `## Tasks` 表格中，`Title` 列只写标题纯文本，不加链接。
-- `## Tasks` 表格中的 `Status` 列使用常见彩色状态图标展示；状态统计区必须保留“图标 + 原始状态值”的映射，方便识别。
-- 默认状态图标：`⬜` = `todo`，`🔄` = `in_progress`，`🔵` = `awaiting_acceptance`，`⛔` = `blocked`，`✅` = `done`，`🗑️` = `obsolete`。
-- 状态图标必须是纯文本图标，不使用 HTML 标签或内联样式。
-- task 文件路径使用相对 `index.md` 的链接，优先使用 `./T###-english-short-title.md`；链接目标必须和实际英文文件名一致。
-
-每次创建、改状态、重启或完成 task 后都要同步更新索引。优先运行：
+- 主索引列出全部未归档任务，按未完成、待验收、已结束分组；不限制最近 20 个。
+- 已结束任务按 Completed 时间从早到晚排列，同时间按编号；缺失时间单列并按编号排序，不用 Updated、mtime 或编号推断完成时间。
+- 主索引包含活动统计、归档统计和历史入口；归档索引列出全部归档任务的编号、类型、标题、原状态、完成时间（如有）、归档时间和正文链接。
+- Task 列链接正文，Title 列纯文本；状态图标保持既有映射（⬜ todo、🔄 in_progress、🔵 awaiting_acceptance、⛔ blocked、✅ done、🗑️ obsolete），统计保留原始状态名。
+- 链接根据索引和正文实际位置计算相对路径，不只使用文件名。索引从正文生成，不承担唯一事实来源。
+- 创建、改状态、重启、完成、归档或恢复后同步生成两级索引：
 
 ```sh
 python3 <ledev-task-skill-dir>/scripts/generate_task_index.py <target-project-root>
 ```
 
-脚本从 `<target-project-root>/.ai/ledev/tasks/T###-*.md` 读取 task 文件，重建 `<target-project-root>/.ai/ledev/tasks/index.md`，并自动生成 task id 链接；Title 列保留纯文本。
-
-如果脚本不可用，才手工维护索引；手工维护时必须保持统计和 Tasks 表格一致。
+脚本读取顶层及 archive/YYYY 下带匹配一级标题的正文，重复编号时报错且不写索引。`--find T010` 只读定位；`--check` 校验两级索引；`--dry-run` 输出两份索引；`--next-id` 覆盖归档和历史。归档元数据与操作详见 `lifecycle.md`。脚本不可用才手工维护同样规则。
 
 ## 状态文件规则
 
@@ -208,3 +203,5 @@ python3 <ledev-task-skill-dir>/scripts/generate_task_index.py <target-project-ro
 - validation status。
 
 其他 skill 必须使用自己的 `.ai/ledev/state/<skill-name>.md`，不要共用 `ledev-task` 状态文件。
+
+state 还应包含下一步、等待事项和必要验证命令，近期事件最多 10 条。收敛前先把独有决策、验证和交接信息保全到对应任务，归属不明则保留并报告；详见 `lifecycle.md`。

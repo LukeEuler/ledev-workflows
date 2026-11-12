@@ -175,7 +175,7 @@ When multiple AI agents, skills, or phases collaborate, use the `.ai/ledev/state
 ### Cross-Skill Contracts
 
 - `ledev-context` writes `.ai/ledev/scope/scan-scope.md`, `.ai/ledev/facts/`, `.ai/ledev/qa/project-qa.md`, `.ai/ledev/project-context.md`, and `.ai/ledev/state/ledev-context.md` only when explicitly invoked. Other skills read them only when they already exist.
-- `ledev-task` writes `.ai/ledev/tasks/T###-*.md`, `.ai/ledev/tasks/index.md`, and `.ai/ledev/state/ledev-task.md`. Other skills read task goals, scope, selected plan, implementation log, validation log, and `Handoff / Next` to understand intent and follow-up work.
+- `ledev-task` writes active `.ai/ledev/tasks/T###-*.md`, archived `.ai/ledev/tasks/archive/YYYY/T###-*.md`, both task indexes, and `.ai/ledev/state/ledev-task.md`. `archive` without IDs evaluates without writing; explicit IDs archive eligible ended tasks; `restore T###` restores their original locations without changing status. Other skills read task goals, scope, selected plan, implementation log, validation log, and `Handoff / Next` to understand intent and follow-up work.
 - `ledev-review` writes `.ai/ledev/reviews/` and `.ai/ledev/state/ledev-review.md`. Review reads related tasks and treats existing context facts as optional evidence; when fixes are needed, it hands them to the task workflow instead of editing code directly.
 - `.ai/ledev/state/<skill>.md` stores runtime anchors only; it does not replace long-lived facts, tasks, review reports, or QA documents.
 - Shared protocol lives in `skills/_shared/references/shared-rules.md`: operation parsing, Chinese-first output, git checks, `.ai/ledev/` writes, path portability, and multi-repo boundaries.

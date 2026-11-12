@@ -9,7 +9,7 @@ review 必须比较“用户想解决什么”和“代码实际改变了什么�
 按优先级读取：
 
 - 用户当前说明。
-- `.ai/ledev/tasks/T###-*.md` 中的需求、方案、实现记录、验证记录和 `Handoff / Next`。
+- 活动 `.ai/ledev/tasks/T###-*.md` 或归档 `.ai/ledev/tasks/archive/YYYY/T###-*.md` 正文中的需求、方案、实现记录、验证记录和 `Handoff / Next`。
 - commit message 和提交序列。
 - issue、PR/MR 描述或本地文档。
 - 测试变更、快照变更、迁移脚本和配置变更。

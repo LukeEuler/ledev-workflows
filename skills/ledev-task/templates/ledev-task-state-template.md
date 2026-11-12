@@ -23,3 +23,15 @@
 ## Validation Status
 
 - Not started.
+
+## Progress / Waiting / Next
+
+- Progress: None.
+- Waiting: None.
+- Next: None.
+- Resume Command: None.
+
+## Recent Events
+
+<!-- 最多 10 条；历史独有证据先转存任务，不能直接截断删除。 -->
+- None.

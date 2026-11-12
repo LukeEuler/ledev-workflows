@@ -58,3 +58,7 @@ If existing project artifacts declare `Primary repo` and `Related repos`, they c
 ## Output
 
 Report commands run, pass/fail status, and remaining validation gaps.
+
+## 活动与归档任务
+
+按 T 编号读取任务时遵循 `../_shared/references/shared-rules.md` 的“任务编号与历史定位”：同时搜索活动和归档正文、检测重复编号、使用实际路径。归档任务仍可作为意图、决策和验证证据；不因归档自动启动 context，不在本 skill 内执行归档或恢复。

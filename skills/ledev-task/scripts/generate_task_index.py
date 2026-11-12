@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+import os
+from urllib.parse import quote
 import re
 import subprocess
 import sys
@@ -39,6 +41,8 @@ class Task:
     task_type: str
     status: str
     path: Path
+    completed: str = ""
+    archived: str = ""
 
 
 def parse_args() -> argparse.Namespace:
@@ -74,6 +78,7 @@ def parse_args() -> argparse.Namespace:
             "records, and git history when available."
         ),
     )
+    parser.add_argument("--find", metavar="T###", help="Locate one active or archived task; fail on duplicate ids.")
     return parser.parse_args()
 
 
@@ -122,21 +127,21 @@ def parse_task(path: Path) -> Task | None:
         task_type=field_value(lines, "Type", "chore"),
         status=field_value(lines, "Status", "todo"),
         path=path,
+        completed=field_value(lines, "Completed", ""),
+        archived=field_value(lines, "Archived", ""),
     )
 
 
-def link_target(path: Path) -> str:
-    name = path.name.replace(" ", "%20")
-    name = name.replace("(", "%28").replace(")", "%29")
-    return f"./{name}"
+def link_target(path: Path, base: Path | None = None) -> str:
+    return "./" + quote(os.path.relpath(path, base or path.parent), safe="/")
 
 
 def escape_cell(value: str) -> str:
     return " ".join(value.split()).replace("|", r"\|")
 
 
-def task_link(task: Task, text: str) -> str:
-    return f"[{escape_cell(text)}]({link_target(task.path)})"
+def task_link(task: Task, text: str, base: Path | None = None) -> str:
+    return f"[{escape_cell(text)}]({link_target(task.path, base)})"
 
 
 def status_icon(status: str) -> str:
@@ -158,48 +163,35 @@ def task_sort_key(task: Task) -> tuple[int, str]:
     return (int(match.group(1)), task.task_id)
 
 
-def render_index(tasks: list[Task]) -> str:
-    counts = status_counts(tasks)
-    sorted_tasks = sorted(tasks, key=task_sort_key)
-    status_parts = [
-        f"{status_icon(status)} `{status}` {counts.get(status, 0)}"
-        for status in KNOWN_STATUSES
-    ]
-    status_parts.extend(
-        f"{status_icon(status)} `{status}` {counts[status]}"
-        for status in sorted(set(counts) - set(KNOWN_STATUSES))
-    )
+def archived_task(task: Task) -> bool:
+    return task.path.parent.name != "tasks"
 
-    lines: list[str] = [
-        "# LEDev Tasks",
-        "",
-        f"- Total: {len(tasks)}",
-        f"- Status: {' · '.join(status_parts)}",
-    ]
 
-    lines.extend(
-        [
-            "",
-            "## Tasks",
-            "",
-            "| Task | Type | Title | Status |",
-            "| --- | --- | --- | --- |",
+def render_index(tasks: list[Task], base: Path | None = None, archive: bool = False) -> str:
+    selected = [t for t in tasks if archived_task(t) == archive]
+    counts = status_counts(selected)
+    base = base or (selected[0].path.parent if selected else Path("."))
+    lines = ["# LEDev Archived Tasks" if archive else "# LEDev Tasks", "",
+             f"- Total: {len(selected)}",
+             "- Status: " + " · ".join(f"{status_icon(s)} `{s}` {counts[s]}" for s in counts)]
+    if archive:
+        lines += ["- [返回任务索引](../index.md)"]
+        groups = [("Archived", sorted(selected, key=lambda t: (t.archived, task_sort_key(t))))]
+    else:
+        lines += [f"- Archived: {sum(archived_task(t) for t in tasks)} · [历史任务目录](./archive/index.md)"]
+        ended = [t for t in selected if t.status in {"done", "obsolete"}]
+        groups = [
+            ("Unfinished", sorted([t for t in selected if t.status not in {"done", "obsolete", "awaiting_acceptance"}], key=task_sort_key)),
+            ("Awaiting Acceptance", sorted([t for t in selected if t.status == "awaiting_acceptance"], key=task_sort_key)),
+            ("Ended", sorted([t for t in ended if t.completed], key=lambda t: (t.completed, task_sort_key(t)))),
+            ("Completion Date Unknown", sorted([t for t in ended if not t.completed], key=task_sort_key)),
         ]
-    )
-    for task in sorted_tasks:
-        lines.append(
-            "| "
-            + " | ".join(
-                [
-                    task_link(task, task.task_id),
-                    escape_cell(task.task_type),
-                    escape_cell(task.title),
-                    escape_cell(status_icon(task.status)),
-                ]
-            )
-            + " |"
-        )
-
+    for title, group in groups:
+        lines += ["", "## " + title, "", "| Task | Type | Title | Status | Completed | Archived |",
+                  "| --- | --- | --- | --- | --- | --- |"]
+        for t in group:
+            lines.append("| " + " | ".join([task_link(t, t.task_id, base), escape_cell(t.task_type),
+                         escape_cell(t.title), status_icon(t.status), escape_cell(t.completed), escape_cell(t.archived)]) + " |")
     return "\n".join(lines) + "\n"
 
 
@@ -287,9 +279,18 @@ def load_tasks(tasks_dir: Path) -> list[Task]:
     if not tasks_dir.exists():
         return []
     tasks: list[Task] = []
-    for path in sorted(tasks_dir.glob("T[0-9]*-*.md")):
+    paths = list(tasks_dir.glob("T[0-9]*-*.md"))
+    paths += list((tasks_dir / "archive").glob("[0-9][0-9][0-9][0-9]/T[0-9]*-*.md"))
+    seen: dict[str, Path] = {}
+    for path in sorted(paths):
         task = parse_task(path)
         if task:
+            # Task bodies have a matching H1; similarly named attachments are not bodies.
+            if not re.search(r"^# " + re.escape(task.task_id) + r"(?:\s|$)", read_text(path), re.M):
+                continue
+            if task.task_id in seen:
+                raise ValueError(f"duplicate task {task.task_id}: {seen[task.task_id]} and {path}")
+            seen[task.task_id] = path
             tasks.append(task)
     return tasks
 
@@ -371,6 +372,13 @@ def main() -> int:
     tasks_dir = project_root / ".ai" / "ledev" / "tasks"
     index_path = tasks_dir / "index.md"
     tasks = load_tasks(tasks_dir)
+    if args.find:
+        matches = [t for t in tasks if t.task_id == args.find.upper()]
+        if not matches:
+            print(f"task not found: {args.find}", file=sys.stderr)
+            return 1
+        print(matches[0].path.relative_to(project_root))
+        return 0
 
     if args.next_id:
         print(next_task_id(project_root, tasks_dir))
@@ -380,27 +388,30 @@ def main() -> int:
         sys.stdout.write(render_unfinished_report(tasks))
         return 0
 
-    rendered = render_index(tasks)
-
+    outputs = {index_path: render_index(tasks, tasks_dir),
+               tasks_dir / "archive" / "index.md": render_index(tasks, tasks_dir / "archive", archive=True)}
     if args.dry_run:
-        sys.stdout.write(rendered)
+        for path, rendered in outputs.items():
+            print(f"<!-- {path.relative_to(project_root)} -->")
+            sys.stdout.write(rendered)
         return 0
-
     if args.check:
-        if not index_path.exists():
-            print(f"missing: {index_path}", file=sys.stderr)
-            return 1
-        current = read_text(index_path)
-        if current != rendered:
-            print(f"stale: {index_path}", file=sys.stderr)
-            return 1
-        return 0
-
-    tasks_dir.mkdir(parents=True, exist_ok=True)
-    index_path.write_text(rendered, encoding="utf-8")
-    print(f"generated {index_path}")
+        stale = [p for p, value in outputs.items() if not p.exists() or read_text(p) != value]
+        for path in stale:
+            print(f"missing or stale: {path}", file=sys.stderr)
+        return int(bool(stale))
+    if (project_root / ".ai/ledev/drafts/task-transaction.json").exists():
+        raise ValueError("unfinished lifecycle transaction; recover before writing indexes")
+    for path, rendered in outputs.items():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(rendered, encoding="utf-8")
+        print(f"generated {path}")
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    try:
+        raise SystemExit(main())
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        raise SystemExit(1)

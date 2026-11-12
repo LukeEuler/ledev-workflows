@@ -8,6 +8,7 @@
 - Status values: todo | in_progress | awaiting_acceptance | blocked | done | obsolete
 - Phase: requirements_draft
 - Created: YYYY-MM-DD
+<!-- close 为 done / obsolete 时新增 - Completed: 实际 ISO 日期或时间；未知不猜测。 -->
 - Updated: YYYY-MM-DD
 
 ## User Request

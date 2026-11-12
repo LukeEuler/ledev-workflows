@@ -22,7 +22,7 @@
 执行：
 
 - 检查目标项目是否存在 `.ai/ledev/tasks/`。
-- 读取 `.ai/ledev/tasks/index.md`；缺失或明显 stale 时，优先运行 `python3 <ledev-task-skill-dir>/scripts/generate_task_index.py <target-project-root>` 刷新索引。若当前场景不允许写文件，使用 `--dry-run` 或 `--unfinished-report` 只读输出。
+- 读取 `.ai/ledev/tasks/index.md`；缺失或明显 stale 时先报告；仅在用户允许刷新时运行 `python3 <ledev-task-skill-dir>/scripts/generate_task_index.py <target-project-root>` 刷新索引。若当前场景不允许写文件，使用 `--dry-run` 或 `--unfinished-report` 只读输出。
 - 展示 task 总数和状态统计。
 - 列出可继续推进的未完成任务。未完成任务指状态不是 `awaiting_acceptance`、`done` 且不是 `obsolete` 的 task，通常包括 `todo`、`in_progress` 和 `blocked`。
 - 将 `awaiting_acceptance` task 作为待验收任务单独列出；它不进入催办式未完成清单，但必须出现在状态统计和待验收分组中。
@@ -108,7 +108,7 @@ python3 <ledev-task-skill-dir>/scripts/generate_task_index.py --next-id <target-
 - 若未运行验证，必须说明原因和剩余风险；通常不要标记 `done`。
 - 若 agent 能执行的实现和验证均已完成，只剩人工、运行时或目标环境验收，将 task 状态设为 `awaiting_acceptance`，在 `Handoff / Next` 记录具体验收动作；验收跑通后再改为 `done`。
 - 若验证和必要验收已完成，更新 task 状态为 `done`；否则按上条设为 `awaiting_acceptance`。随后同步索引和 `.ai/ledev/state/ledev-task.md`。
-- 同步索引时优先运行 `scripts/generate_task_index.py`，确保 `## Tasks` 表格里只有 task id 链接到对应 task 文件，Title 列保留纯文本。
+- 同步索引时优先运行 `scripts/generate_task_index.py`，确保 各分组表格里只有 task id 链接到对应 task 文件，Title 列保留纯文本。
 - 最终回复包含文件变更、验证命令、结果和剩余风险。
 
 ## 可选的既有项目上下文
@@ -190,3 +190,9 @@ task 阶段使用稳定英文值，写入 task 文件和 `.ai/ledev/state/ledev-
 - 如果主仓库声明依赖 B 的版本是 `101`，但本地 B checkout 是 `102`，且没有证据表明构建会解析到本地 B，则不能把 B@102 的行为当作主仓库 confirmed behavior。
 - 如果构建配置明确解析到本地 B@102，则 task 必须记录它与声明版本 `101` 的差异，并把兼容性风险写入 `Impact`。
 - 需要精确修复/验证 `101` 时，优先使用独立 worktree、独立 clone 或 module cache；切换现有关联仓库 checkout 前必须确认，避免覆盖用户工作区。
+
+## archive / restore
+
+归档评估、执行和恢复按 `lifecycle.md`。按编号读取任务（含 continue、restart、close）先同时定位活动/归档正文，不假定文件在顶层。归档任务需要继续、重启或修改完成状态时，先按 restore 流程恢复，再执行用户指定操作；用户明确要求继续或重启即授权必要恢复，无需重复确认。只读查看归档任务不必恢复。
+
+state 始终保持恢复锚点；按 lifecycle.md 保全独有历史后再收敛。不要把已关闭任务的完整操作日志继续追加到 state。

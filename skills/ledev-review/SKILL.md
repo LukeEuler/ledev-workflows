@@ -92,3 +92,7 @@ description: 面向中文用户。用于对 Git 项目中已经 commit 的线性
 - `ledev-task`：如果变更来自 task，读取 task 的目标、方案、实现记录、验证记录和 `Handoff / Next`，用于意图一致性检查与遗留事项识别。
 - `ledev-test`：review 只指出测试缺口和建议验证，不接管独立测试治理。
 - `ledev-review` 默认不改代码；用户明确要求修复 finding 时，转入开发/修复 task 工作流。
+
+## 活动与归档任务
+
+按 T 编号读取任务时遵循 `../_shared/references/shared-rules.md` 的“任务编号与历史定位”：同时搜索活动和归档正文、检测重复编号、使用实际路径。归档任务仍可作为意图、决策和验证证据；不因归档自动启动 context，不在本 skill 内执行归档或恢复。
